@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Minds Home Tuition & Skill Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            accent: { DEFAULT:'#e8620a', light:'#fff4ed', dark:'#c4500a', 50:'#fef3ea' },
+            side: { DEFAULT:'#0c1222', hover:'#162036', active:'rgba(232,98,10,0.12)' },
+            surface: { DEFAULT:'#f1f5f9', dark:'#0f172a' },
+            card: { DEFAULT:'#ffffff', dark:'#1e293b' },
+            txt: { DEFAULT:'#1e293b', dark:'#f1f5f9', muted:'#64748b', 'dark-muted':'#94a3b8' },
+            bdr: { DEFAULT:'#e2e8f0', dark:'#334155' },
+          },
+          fontFamily: { sans:['DM Sans','sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'DM Sans',sans-serif;overflow-x:hidden;}
+    ::-webkit-scrollbar{width:6px;height:6px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px;}
+    .dark ::-webkit-scrollbar-thumb{background:#475569;}
+    #sidebar{width:260px;min-height:100vh;transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:40;}
+    #sidebar .nav-link{display:flex;align-items:center;gap:12px;padding:10px 20px;border-radius:10px;margin:2px 12px;transition:all .2s;color:#94a3b8;font-size:14px;font-weight:500;cursor:pointer;text-decoration:none;}
+    #sidebar .nav-link:hover{background:#162036;color:#e2e8f0;}
+    #sidebar .nav-link.active{background:rgba(232,98,10,0.12);color:#e8620a;font-weight:600;}
+    #sidebar .nav-link.active i{color:#e8620a;}
+    #sidebar .nav-link i{width:20px;text-align:center;font-size:15px;}
+    #sidebarOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:35;backdrop-filter:blur(2px);}
+    #sidebarOverlay.show{display:block;}
+    @media(max-width:1023px){
+      #sidebar{position:fixed;left:0;top:0;transform:translateX(-100%);}
+      #sidebar.open{transform:translateX(0);}
+    }
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes scaleIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+    @keyframes toastIn{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:translateX(0)}}
+    @keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(100%)}}
+    .anim-fade{animation:fadeIn .4s ease both;}
+    .anim-slide{animation:slideUp .5s ease both;}
+    .anim-scale{animation:scaleIn .3s ease both;}
+    .stagger>*:nth-child(1){animation-delay:.05s}.stagger>*:nth-child(2){animation-delay:.1s}
+    .stagger>*:nth-child(3){animation-delay:.15s}.stagger>*:nth-child(4){animation-delay:.2s}
+    #modalOverlay{transition:opacity .2s;}
+    #modalOverlay.show{opacity:1;pointer-events:auto;}
+    #modalOverlay .modal-box{animation:scaleIn .25s ease both;}
+    .toast{animation:toastIn .35s ease both;}
+    .toast.out{animation:toastOut .3s ease both;}
+    .stat-card{transition:transform .2s,box-shadow .2s;}
+    .stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,.08);}
+    .dark .stat-card:hover{box-shadow:0 8px 25px rgba(0,0,0,.3);}
+    .tbl-row{transition:background .15s;}
+    .tbl-row:hover{background:#f8fafc;}
+    .dark .tbl-row:hover{background:#1a2740;}
+    .badge-high{background:#fef2f2;color:#dc2626;border:1px solid #fecaca;}
+    .badge-medium{background:#fffbeb;color:#d97706;border:1px solid #fde68a;}
+    .badge-low{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;}
+    .badge-paid{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;}
+    .badge-pending{background:#fffbeb;color:#d97706;border:1px solid #fde68a;}
+    .badge-progress{background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;}
+    .badge-completed{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;}
+    .calc-btn{display:flex;align-items:center;justify-content:center;border-radius:12px;font-size:18px;font-weight:600;cursor:pointer;transition:all .15s;user-select:none;border:none;outline:none;}
+    .calc-btn:active{transform:scale(.95);}
+    .calc-num{background:#f1f5f9;color:#1e293b;}.dark .calc-num{background:#334155;color:#f1f5f9;}
+    .calc-num:hover{background:#e2e8f0;}.dark .calc-num:hover{background:#475569;}
+    .calc-op{background:#fff4ed;color:#e8620a;}.dark .calc-op{background:rgba(232,98,10,.15);color:#e8620a;}
+    .calc-op:hover{background:#fde4cc;}
+    .calc-eq{background:#e8620a;color:white;}.calc-eq:hover{background:#c4500a;}
+    .calc-clear{background:#fef2f2;color:#dc2626;}.dark .calc-clear{background:rgba(220,38,38,.1);color:#f87171;}
+    .calc-clear:hover{background:#fee2e2;}
+    .task-check{width:20px;height:20px;border-radius:6px;border:2px solid #cbd5e1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+    .task-check.checked{background:#10b981;border-color:#10b981;}
+    .task-check.checked::after{content:'✓';color:white;font-size:12px;font-weight:700;}
+    .notif-badge{position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:#ef4444;color:white;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid white;animation:scaleIn .3s ease both;}
+    .dark .notif-badge{border-color:#0f172a;}
+    .login-pattern{background-image:radial-gradient(circle at 25% 25%,rgba(232,98,10,.08) 0%,transparent 50%),radial-gradient(circle at 75% 75%,rgba(232,98,10,.05) 0%,transparent 50%);}
+    .dark .login-pattern{background-image:radial-gradient(circle at 25% 25%,rgba(232,98,10,.12) 0%,transparent 50%),radial-gradient(circle at 75% 75%,rgba(232,98,10,.08) 0%,transparent 50%);}
+    .glow-accent{box-shadow:0 0 60px rgba(232,98,10,.15);}.dark .glow-accent{box-shadow:0 0 60px rgba(232,98,10,.2);}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
+  </style>
+</head>
+<body class="bg-surface dark:bg-surface-dark text-txt dark:text-txt-dark min-h-screen font-sans">
+
+  <!-- LOGIN SCREEN -->
+  <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center login-pattern bg-surface dark:bg-surface-dark">
+    <div class="w-full max-w-md mx-4 anim-slide">
+      <div class="text-center mb-8">
+        <div class="w-16 h-16 bg-accent rounded-2xl flex items-center justify-center mx-auto mb-4 glow-accent">
+          <i class="fa-solid fa-brain text-white text-2xl"></i>
+        </div>
+        <h1 class="text-2xl font-800 text-txt dark:text-txt-dark">Smart Minds</h1>
+        <p class="text-txt-muted dark:text-txt-dark-muted text-sm mt-1">Home Tuition & Skill Hub</p>
+      </div>
+      <div class="bg-card dark:bg-card-dark rounded-2xl p-8 shadow-xl border border-bdr dark:border-bdr-dark">
+        <h2 id="loginTitle" class="text-lg font-700 mb-1">Create Your PIN</h2>
+        <p id="loginSubtitle" class="text-txt-muted dark:text-txt-dark-muted text-sm mb-6">Set a 4-digit PIN to secure your account</p>
+        <div class="flex gap-3 justify-center mb-6" id="pinDots">
+          <div class="w-12 h-12 rounded-xl border-2 border-bdr dark:border-bdr-dark bg-surface dark:bg-surface-dark flex items-center justify-center text-xl font-700 pin-dot"></div>
+          <div class="w-12 h-12 rounded-xl border-2 border-bdr dark:border-bdr-dark bg-surface dark:bg-surface-dark flex items-center justify-center text-xl font-700 pin-dot"></div>
+          <div class="w-12 h-12 rounded-xl border-2 border-bdr dark:border-bdr-dark bg-surface dark:bg-surface-dark flex items-center justify-center text-xl font-700 pin-dot"></div>
+          <div class="w-12 h-12 rounded-xl border-2 border-bdr dark:border-bdr-dark bg-surface dark:bg-surface-dark flex items-center justify-center text-xl font-700 pin-dot"></div>
+        </div>
+        <div class="grid grid-cols-3 gap-3" id="pinPad">
+          <button class="pin-key h-12 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark font-600 text-lg hover:bg-accent-light dark:hover:bg-side-hover transition" data-key="1">1</button>
+          <button class="pin-key h-12 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark font-600 text-lg hover:bg-accent-light dark:hover:bg-side-hover transition" data-key="2">2</button>
+          <button class="pin-key h-12 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark font-600 text-lg hover:bg-accent-light dark:hover:bg-side-hover transition" data-key="3">3</button>
+          <button class="pin-key h-12 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark font-600 text-lg hover:bg-accent-light dark:hover:bg-side-hover transition" data-key="4">4</button>
+          <button class="pin-key h-12 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark font-600 text-lg hover:bg-accent-light dark:hover:bg-side-hover transition" data-key="5">5</button>
+          <button class="pin-key h-12 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark font-600 text-lg hover:bg-accent-light dark:hover:bg-side-hover transition" data-key="6">6</button>
+          <button class="pin-key h-12 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark font-600 text-lg hover:bg-accent-light dark:hover:bg-side-hover transition" data-key="7">7</button>
+          <button class="pin-key h-12 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark font-600 text-lg hover:bg-accent-light dark:hover:bg-side-hover transition" data-key="8">8</button>
+          <button class="pin-key h-12 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark font-600 text-lg hover:bg-accent-light dark:hover:bg-side-hover transition" data-key="9">9</button>
+          <button id="pinBackspace" class="h-12 rounded-xl text-red-500 font-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition"><i class="fa-solid fa-delete-left"></i></button>
+          <button class="pin-key h-12 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark font-600 text-lg hover:bg-accent-light dark:hover:bg-side-hover transition" data-key="0">0</button>
+          <button id="pinSubmit" class="h-12 rounded-xl bg-accent text-white font-600 hover:bg-accent-dark transition"><i class="fa-solid fa-check"></i></button>
+        </div>
+        <p id="loginError" class="text-red-500 text-sm text-center mt-4 hidden">Incorrect PIN. Try again.</p>
+      </div>
+      <p class="text-center text-txt-muted dark:text-txt-dark-muted text-xs mt-4">Data stored locally on your device</p>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="app" class="hidden flex min-h-screen">
+    <div id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <aside id="sidebar" class="bg-side fixed lg:sticky top-0 h-screen flex flex-col">
+      <div class="p-6 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-accent rounded-xl flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-brain text-white text-lg"></i>
+          </div>
+          <div>
+            <h1 class="text-white font-800 text-sm leading-tight">Smart Minds</h1>
+            <p class="text-slate-500 text-[11px] font-500">Tuition & Skill Hub</p>
+          </div>
+        </div>
+      </div>
+      <nav class="flex-1 py-2 overflow-y-auto" id="sidebarNav">
+        <a class="nav-link active" data-page="dashboard"><i class="fa-solid fa-gauge-high"></i>Dashboard</a>
+        <a class="nav-link" data-page="tasks"><i class="fa-solid fa-list-check"></i>Tasks</a>
+        <a class="nav-link" data-page="income"><i class="fa-solid fa-money-bill-trend-up"></i>Income</a>
+        <a class="nav-link" data-page="expenses"><i class="fa-solid fa-receipt"></i>Expenses</a>
+        <a class="nav-link" data-page="profit"><i class="fa-solid fa-chart-line"></i>Profit</a>
+        <a class="nav-link" data-page="students"><i class="fa-solid fa-user-graduate"></i>Students</a>
+        <a class="nav-link" data-page="calculator"><i class="fa-solid fa-calculator"></i>Calculator</a>
+        <a class="nav-link" data-page="reports"><i class="fa-solid fa-file-export"></i>Reports</a>
+        <a class="nav-link" data-page="notifications"><i class="fa-solid fa-bell"></i>Notifications</a>
+      </nav>
+      <div class="p-4 border-t border-white/5">
+        <button onclick="toggleDarkMode()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-side-hover transition text-sm">
+          <i class="fa-solid fa-moon w-5 text-center" id="darkModeIcon"></i>
+          <span id="darkModeLabel">Dark Mode</span>
+        </button>
+        <button onclick="logout()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-red-400 hover:bg-side-hover transition text-sm mt-1">
+          <i class="fa-solid fa-right-from-bracket w-5 text-center"></i>
+          <span>Logout</span>
+        </button>
+      </div>
+    </aside>
+    <div class="flex-1 min-w-0 flex flex-col">
+      <header class="sticky top-0 z-30 bg-surface/80 dark:bg-surface-dark/80 backdrop-blur-xl border-b border-bdr dark:border-bdr-dark">
+        <div class="flex items-center justify-between px-4 lg:px-8 h-16">
+          <div class="flex items-center gap-3">
+            <button onclick="toggleSidebar()" class="lg:hidden w-10 h-10 rounded-xl bg-card dark:bg-card-dark border border-bdr dark:border-bdr-dark flex items-center justify-center">
+              <i class="fa-solid fa-bars text-txt dark:text-txt-dark"></i>
+            </button>
+            <h2 id="pageTitle" class="text-lg font-700">Dashboard</h2>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="navigateTo('notifications')" class="relative w-10 h-10 rounded-xl bg-card dark:bg-card-dark border border-bdr dark:border-bdr-dark flex items-center justify-center hover:border-accent transition">
+              <i class="fa-solid fa-bell text-txt-muted dark:text-txt-dark-muted text-sm"></i>
+              <span id="notifBadgeTop" class="notif-badge hidden">0</span>
+            </button>
+            <div class="w-10 h-10 rounded-xl bg-accent flex items-center justify-center">
+              <span class="text-white font-700 text-sm">SM</span>
+            </div>
+          </div>
+        </div>
+      </header>
+      <main id="content" class="flex-1 p-4 lg:p-8"></main>
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div id="modalOverlay" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none">
+    <div class="modal-box bg-card dark:bg-card-dark rounded-2xl shadow-2xl border border-bdr dark:border-bdr-dark w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between p-6 pb-0">
+        <h3 id="modalTitle" class="text-lg font-700"></h3>
+        <button onclick="closeModal()" class="w-8 h-8 rounded-lg hover:bg-surface dark:hover:bg-surface-dark flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-txt-muted dark:text-txt-dark-muted"></i>
+        </button>
+      </div>
+      <div id="modalBody" class="p-6"></div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-[60] flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    /* ===== DATA LAYER ===== */
+    const DB = {
+      get(k) { try { return JSON.parse(localStorage.getItem('sm_' + k)) || []; } catch(e) { return []; } },
+      set(k, v) { localStorage.setItem('sm_' + k, JSON.stringify(v)); },
+      getOne(k) { return localStorage.getItem('sm_' + k); },
+      setOne(k, v) { localStorage.setItem('sm_' + k, v); },
+      id() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 5); }
+    };
+
+    /* ===== STATE ===== */
+    let currentPage = 'dashboard';
+    const charts = {};
+    let pinBuffer = '';
+    let pinMode = 'create';
+    let editingId = null;
+    let taskFilter = 'All';
+    let incomePeriod = 'all';
+    let expPeriod = 'all';
+    let studentFilter = 'All';
+    let calcDisplay = '0', calcOp = null, calcPrev = null, calcReset = false;
+
+    /* ===== HELPERS ===== */
+    const $ = s => document.querySelector(s);
+    const $$ = s => document.querySelectorAll(s);
+    const fmt = n => 'KSh ' + Number(n).toLocaleString('en-KE');
+    const fmtDate = d => new Date(d).toLocaleDateString('en-KE', { day:'numeric', month:'short', year:'numeric' });
+    const fmtDateTime = d => { try { return new Date(d).toLocaleDateString('en-KE', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }); } catch(e) { return d; } };
+    const today = () => new Date().toISOString().split('T')[0];
+    const daysAgo = n => { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().split('T')[0]; };
+    const daysLater = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().split('T')[0]; };
+
+    /* ===== LOGIN SYSTEM ===== */
+    function enterPin(num) {
+      if (pinBuffer.length >= 4) return;
+      pinBuffer += num;
+      updatePinDots();
+    }
+    function clearPinDigit() {
+      pinBuffer = pinBuffer.slice(0, -1);
+      updatePinDots();
+    }
+    function updatePinDots() {
+      const dots = $$('.pin-dot');
+      dots.forEach((d, i) => {
+        d.textContent = i < pinBuffer.length ? '●' : '';
+        d.classList.toggle('border-accent', i < pinBuffer.length);
+        d.classList.toggle('text-accent', i < pinBuffer.length);
+        d.classList.toggle('border-bdr', i >= pinBuffer.length);
+        d.classList.toggle('dark:border-bdr-dark', i >= pinBuffer.length);
+      });
+    }
+    function submitPin() {
+      if (pinBuffer.length !== 4) return;
+      const stored = DB.getOne('pin');
+      if (pinMode === 'create') {
+        DB.setOne('pin', pinBuffer);
+        pinMode = 'verify';
+        pinBuffer = '';
+        updatePinDots();
+        $('#loginTitle').textContent = 'Confirm Your PIN';
+        $('#loginSubtitle').textContent = 'Enter the PIN again to confirm';
+        $('#loginError').classList.add('hidden');
+      } else {
+        if (pinBuffer === stored) {
+          $('#loginScreen').style.display = 'none';
+          $('#app').classList.remove('hidden');
+          $('#app').style.display = 'flex';
+          initApp();
+        } else {
+          $('#loginError').classList.remove('hidden');
+          pinBuffer = '';
+          updatePinDots();
+          setTimeout(() => $('#loginError').classList.add('hidden'), 3000);
+        }
+      }
+    }
+
+    // Wire up PIN pad buttons
+    document.addEventListener('DOMContentLoaded', () => {
+      $$('.pin-key').forEach(btn => {
+        btn.addEventListener('click', () => enterPin(btn.dataset.key));
+      });
+      $('#pinBackspace').addEventListener('click', clearPinDigit);
+      $('#pinSubmit').addEventListener('click', submitPin);
+
+      // Keyboard support for PIN entry
+      document.addEventListener('keydown', (e) => {
+        if ($('#loginScreen').style.display === 'none') return;
+        if (e.key >= '0' && e.key <= '9') enterPin(e.key);
+        else if (e.key === 'Backspace') clearPinDigit();
+        else if (e.key === 'Enter') submitPin();
+      });
+
+      // If PIN already exists, switch to verify mode
+      if (DB.getOne('pin')) {
+        pinMode = 'verify';
+        $('#loginTitle').textContent = 'Enter Your PIN';
+        $('#loginSubtitle').textContent = 'Enter your 4-digit PIN to access the system';
+      }
+
+      initDarkMode();
+    });
+
+    function logout() {
+      pinBuffer = '';
+      updatePinDots();
+      $('#loginScreen').style.display = 'flex';
+      $('#app').style.display = 'none';
+      $('#app').classList.add('hidden');
+      pinMode = 'verify';
+      $('#loginTitle').textContent = 'Enter Your PIN';
+      $('#loginSubtitle').textContent = 'Enter your 4-digit PIN to access the system';
+    }
+
+    /* ===== DARK MODE ===== */
+    function initDarkMode() {
+      const dark = DB.getOne('darkMode') === 'true';
+      document.documentElement.classList.toggle('dark', dark);
+      updateDarkModeUI(dark);
+    }
+    function toggleDarkMode() {
+      const dark = !document.documentElement.classList.contains('dark');
+      document.documentElement.classList.toggle('dark', dark);
+      DB.setOne('darkMode', dark);
+      updateDarkModeUI(dark);
+      if (currentPage === 'dashboard') renderDashboardCharts();
+      if (currentPage === 'profit') renderProfitChart();
+    }
+    function updateDarkModeUI(dark) {
+      $('#darkModeIcon').className = dark ? 'fa-solid fa-sun w-5 text-center text-amber-400' : 'fa-solid fa-moon w-5 text-center';
+      $('#darkModeLabel').textContent = dark ? 'Light Mode' : 'Dark Mode';
+    }
+
+    /* ===== INIT APP ===== */
+    function initApp() {
+      seedData();
+      updateNotifBadge();
+      navigateTo('dashboard');
+    }
+
+    /* ===== NAVIGATION ===== */
+    function navigateTo(page) {
+      currentPage = page;
+      $$('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.page === page));
+      const titles = { dashboard:'Dashboard', tasks:'Task Management', income:'Income Tracker', expenses:'Expense Tracker', profit:'Profit Analysis', students:'Student Management', calculator:'Calculator', reports:'Reports & Export', notifications:'Notifications' };
+      $('#pageTitle').textContent = titles[page] || page;
+      renderPage(page);
+      $('#sidebar').classList.remove('open');
+      $('#sidebarOverlay').classList.remove('show');
+    }
+    function toggleSidebar() {
+      $('#sidebar').classList.toggle('open');
+      $('#sidebarOverlay').classList.toggle('show');
+    }
+    $('#sidebarNav').addEventListener('click', e => {
+      const link = e.target.closest('.nav-link');
+      if (link) navigateTo(link.dataset.page);
+    });
+
+    /* ===== TOAST ===== */
+    function toast(msg, type = 'success') {
+      const colors = { success:'bg-emerald-500', error:'bg-red-500', warning:'bg-amber-500', info:'bg-sky-500' };
+      const icons = { success:'fa-check', error:'fa-xmark', warning:'fa-triangle-exclamation', info:'fa-info' };
+      const el = document.createElement('div');
+      el.className = 'toast pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl text-white text-sm font-500 shadow-lg ' + (colors[type]||colors.success);
+      el.innerHTML = '<i class="fa-solid ' + (icons[type]||icons.success) + '"></i><span>' + msg + '</span>';
+      $('#toastContainer').appendChild(el);
+      setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, 3000);
+    }
+
+    /* ===== MODAL ===== */
+    function openModal(title, bodyHTML) {
+      $('#modalTitle').textContent = title;
+      $('#modalBody').innerHTML = bodyHTML;
+      $('#modalOverlay').classList.add('show');
+    }
+    function closeModal() {
+      $('#modalOverlay').classList.remove('show');
+      editingId = null;
+    }
+    $('#modalOverlay').addEventListener('click', e => { if (e.target === $('#modalOverlay')) closeModal(); });
+
+    /* ===== NOTIFICATIONS ===== */
+    function getNotifications() {
+      const notes = [];
+      const tasks = DB.get('tasks');
+      const students = DB.get('students');
+      const t = new Date();
+      tasks.filter(x => x.status !== 'Completed').forEach(task => {
+        if (task.deadline) {
+          const dl = new Date(task.deadline);
+          const diff = Math.ceil((dl - t) / (1000*60*60*24));
+          if (diff < 0) notes.push({ icon:'fa-clock', color:'text-red-500', title:'Overdue Task', desc:'"' + task.title + '" was due ' + Math.abs(diff) + ' day(s) ago' });
+          else if (diff === 0) notes.push({ icon:'fa-clock', color:'text-amber-500', title:'Due Today', desc:'"' + task.title + '" is due today' });
+          else if (diff <= 2) notes.push({ icon:'fa-clock', color:'text-sky-500', title:'Upcoming Deadline', desc:'"' + task.title + '" is due in ' + diff + ' day(s)' });
+        }
+      });
+      students.filter(s => s.paymentStatus === 'Pending').forEach(s => {
+        const bal = (s.totalFees || 0) - (s.feesPaid || 0);
+        if (bal > 0) notes.push({ icon:'fa-user-graduate', color:'text-amber-500', title:'Unpaid Fees', desc: s.name + ' has KSh ' + bal.toLocaleString() + ' outstanding' });
+      });
+      return notes;
+    }
+    function updateNotifBadge() {
+      const count = getNotifications().length;
+      const badge = $('#notifBadgeTop');
+      if (count > 0) { badge.textContent = count > 9 ? '9+' : count; badge.classList.remove('hidden'); }
+      else badge.classList.add('hidden');
+    }
+
+    /* ===== RENDER PAGES ===== */
+    function renderPage(page) {
+      const c = $('#content');
+      // Destroy existing charts
+      Object.keys(charts).forEach(k => { if (charts[k]) { charts[k].destroy(); charts[k] = null; } });
+      switch(page) {
+        case 'dashboard': c.innerHTML = getDashboardHTML(); renderDashboardData(); break;
+        case 'tasks': c.innerHTML = getTasksHTML(); renderTasksList(); break;
+        case 'income': c.innerHTML = getIncomeHTML(); renderIncomeList(); break;
+        case 'expenses': c.innerHTML = getExpensesHTML(); renderExpensesList(); break;
+        case 'profit': c.innerHTML = getProfitHTML(); renderProfitData(); break;
+        case 'students': c.innerHTML = getStudentsHTML(); renderStudentsList(); break;
+        case 'calculator': c.innerHTML = getCalculatorHTML(); break;
+        case 'reports': c.innerHTML = getReportsHTML(); populateStudentsReportTable(); break;
+        case 'notifications': c.innerHTML = getNotificationsHTML(); renderNotificationsList(); break;
+      }
+    }
+
+    /* ===== DASHBOARD ===== */
+    function getDashboardHTML() {
+      return '<div class="stagger">'
+        + '<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">'
+        + '<div class="stat-card anim-fade bg-card dark:bg-card-dark rounded-2xl p-5 border border-bdr dark:border-bdr-dark"><div class="flex items-center justify-between mb-3"><div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center"><i class="fa-solid fa-arrow-trend-up text-emerald-500"></i></div></div><p class="text-txt-muted dark:text-txt-dark-muted text-xs font-500 mb-1">Total Income</p><p class="text-2xl font-800" id="dashIncome">KSh 0</p></div>'
+        + '<div class="stat-card anim-fade bg-card dark:bg-card-dark rounded-2xl p-5 border border-bdr dark:border-bdr-dark"><div class="flex items-center justify-between mb-3"><div class="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center"><i class="fa-solid fa-arrow-trend-down text-red-500"></i></div></div><p class="text-txt-muted dark:text-txt-dark-muted text-xs font-500 mb-1">Total Expenses</p><p class="text-2xl font-800" id="dashExpenses">KSh 0</p></div>'
+        + '<div class="stat-card anim-fade bg-card dark:bg-card-dark rounded-2xl p-5 border border-bdr dark:border-bdr-dark"><div class="flex items-center justify-between mb-3"><div class="w-10 h-10 rounded-xl bg-accent-light dark:bg-accent/10 flex items-center justify-center"><i class="fa-solid fa-coins text-accent"></i></div></div><p class="text-txt-muted dark:text-txt-dark-muted text-xs font-500 mb-1">Net Profit</p><p class="text-2xl font-800" id="dashProfit">KSh 0</p></div>'
+        + '<div class="stat-card anim-fade bg-card dark:bg-card-dark rounded-2xl p-5 border border-bdr dark:border-bdr-dark"><div class="flex items-center justify-between mb-3"><div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center"><i class="fa-solid fa-user-graduate text-sky-500"></i></div></div><p class="text-txt-muted dark:text-txt-dark-muted text-xs font-500 mb-1">Total Students</p><p class="text-2xl font-800" id="dashStudents">0</p></div>'
+        + '</div>'
+        + '<div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-6">'
+        + '<div class="xl:col-span-2 anim-fade bg-card dark:bg-card-dark rounded-2xl p-5 border border-bdr dark:border-bdr-dark"><h3 class="font-700 text-sm mb-4">Monthly Income (Last 6 Months)</h3><div style="height:260px"><canvas id="incomeChart"></canvas></div></div>'
+        + '<div class="anim-fade bg-card dark:bg-card-dark rounded-2xl p-5 border border-bdr dark:border-bdr-dark"><h3 class="font-700 text-sm mb-4">Expense Breakdown</h3><div style="height:260px"><canvas id="expenseChart"></canvas></div></div>'
+        + '</div>'
+        + '<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">'
+        + '<div class="anim-fade bg-card dark:bg-card-dark rounded-2xl p-5 border border-bdr dark:border-bdr-dark"><div class="flex items-center justify-between mb-4"><h3 class="font-700 text-sm">Upcoming Tasks</h3><button onclick="navigateTo(\'tasks\')" class="text-xs text-accent font-600 hover:underline">View All</button></div><div id="dashUpcomingTasks" class="space-y-2"></div></div>'
+        + '<div class="anim-fade bg-card dark:bg-card-dark rounded-2xl p-5 border border-bdr dark:border-bdr-dark"><div class="flex items-center justify-between mb-4"><h3 class="font-700 text-sm">Recent Transactions</h3><button onclick="navigateTo(\'income\')" class="text-xs text-accent font-600 hover:underline">View All</button></div><div id="dashRecentTx" class="space-y-2"></div></div>'
+        + '</div></div>';
+    }
+    function renderDashboardData() {
+      const income = DB.get('income');
+      const expenses = DB.get('expenses');
+      const students = DB.get('students');
+      const tasks = DB.get('tasks');
+      const totalIncome = income.reduce((s, i) => s + Number(i.amount), 0);
+      const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0);
+      const profit = totalIncome - totalExpenses;
+      const el = (id) => document.getElementById(id);
+      if (el('dashIncome')) el('dashIncome').textContent = fmt(totalIncome);
+      if (el('dashExpenses')) el('dashExpenses').textContent = fmt(totalExpenses);
+      if (el('dashProfit')) { el('dashProfit').textContent = fmt(profit); el('dashProfit').style.color = profit < 0 ? '#ef4444' : ''; }
+      if (el('dashStudents')) el('dashStudents').textContent = students.length;
+
+      // Upcoming tasks
+      const upcoming = tasks.filter(t => t.status !== 'Completed').sort((a, b) => new Date(a.deadline) - new Date(b.deadline)).slice(0, 5);
+      const tc = el('dashUpcomingTasks');
+      if (tc) {
+        if (!upcoming.length) { tc.innerHTML = '<p class="text-txt-muted dark:text-txt-dark-muted text-sm py-4 text-center">No upcoming tasks</p>'; }
+        else tc.innerHTML = upcoming.map(t => {
+          const pc = t.priority === 'High' ? 'badge-high' : t.priority === 'Medium' ? 'badge-medium' : 'badge-low';
+          const over = new Date(t.deadline) < new Date() ? 'text-red-500' : '';
+          return '<div class="flex items-center gap-3 p-3 rounded-xl bg-surface dark:bg-surface-dark"><div class="task-check" onclick="quickToggleTask(\'' + t.id + '\')"></div><div class="flex-1 min-w-0"><p class="text-sm font-600 truncate">' + t.title + '</p><p class="text-xs ' + (over || 'text-txt-muted dark:text-txt-dark-muted') + '">' + fmtDateTime(t.deadline) + '</p></div><span class="text-[11px] font-600 px-2 py-0.5 rounded-md ' + pc + ' whitespace-nowrap">' + t.priority + '</span></div>';
+        }).join('');
+      }
+
+      // Recent transactions
+      const recent = [...income].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+      const tx = el('dashRecentTx');
+      if (tx) {
+        if (!recent.length) { tx.innerHTML = '<p class="text-txt-muted dark:text-txt-dark-muted text-sm py-4 text-center">No transactions yet</p>'; }
+        else tx.innerHTML = recent.map(r => {
+          const mi = r.paymentMethod === 'M-Pesa' ? 'fa-mobile-screen' : r.paymentMethod === 'Cash' ? 'fa-money-bill' : 'fa-building-columns';
+          return '<div class="flex items-center gap-3 p-3 rounded-xl bg-surface dark:bg-surface-dark"><div class="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center"><i class="fa-solid ' + mi + ' text-emerald-500 text-sm"></i></div><div class="flex-1 min-w-0"><p class="text-sm font-600 truncate">' + r.customerName + '</p><p class="text-xs text-txt-muted dark:text-txt-dark-muted">' + r.service + ' &middot; ' + fmtDate(r.date) + '</p></div><p class="text-sm font-700 text-emerald-600">+' + fmt(r.amount) + '</p></div>';
+        }).join('');
+      }
+      renderDashboardCharts();
+    }
+    function quickToggleTask(id) {
+      const tasks = DB.get('tasks');
+      const t = tasks.find(x => x.id === id);
+      if (t) { t.status = t.status === 'Completed' ? 'Pending' : 'Completed'; DB.set('tasks', tasks); renderDashboardData(); updateNotifBadge(); }
+    }
+    function renderDashboardCharts() {
+      const income = DB.get('income');
+      const expenses = DB.get('expenses');
+      const dark = document.documentElement.classList.contains('dark');
+      const gc = dark ? 'rgba(148,163,184,0.08)' : 'rgba(0,0,0,0.04)';
+      const tc = dark ? '#94a3b8' : '#64748b';
+      const months = [];
+      for (let i = 5; i >= 0; i--) { const d = new Date(); d.setMonth(d.getMonth() - i); months.push({ label: d.toLocaleDateString('en-KE',{month:'short',year:'2-digit'}), m: d.getMonth(), y: d.getFullYear() }); }
+      const ibm = months.map(m => income.filter(i => { const d = new Date(i.date); return d.getMonth() === m.m && d.getFullYear() === m.y; }).reduce((s, i) => s + Number(i.amount), 0));
+      const c1 = document.getElementById('incomeChart');
+      if (c1) { charts.income = new Chart(c1, { type:'bar', data:{ labels:months.map(m=>m.label), datasets:[{label:'Income',data:ibm,backgroundColor:'#e8620a',borderRadius:8,borderSkipped:false,barThickness:32}] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false},ticks:{color:tc,font:{size:11}}}, y:{grid:{color:gc},ticks:{color:tc,font:{size:11},callback:v=>'KSh '+(v/1000).toFixed(0)+'k'}} } } }); }
+      const cats = ['Transport','Rent','Materials','Internet','Marketing','Utilities','Other'];
+      const cc = ['#e8620a','#0ea5e9','#10b981','#f59e0b','#8b5cf6','#ec4899','#64748b'];
+      const ebc = cats.map(c => expenses.filter(e => e.category === c).reduce((s, e) => s + Number(e.amount), 0));
+      const c2 = document.getElementById('expenseChart');
+      if (c2) { charts.expense = new Chart(c2, { type:'doughnut', data:{ labels:cats, datasets:[{data:ebc,backgroundColor:cc,borderWidth:0,spacing:2}] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'65%', plugins:{legend:{position:'bottom',labels:{color:tc,font:{size:10},boxWidth:10,padding:8}}} } }); }
+    }
+
+    /* ===== TASKS ===== */
+    function getTasksHTML() {
+      const filters = ['All','Pending','In Progress','Completed'];
+      let h = '<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5"><div class="flex gap-2 flex-wrap">';
+      filters.forEach(f => { h += '<button onclick="taskFilter=\'' + f + '\';renderTasksList()" class="px-3 py-1.5 rounded-lg text-xs font-600 border transition ' + (taskFilter===f ? 'bg-accent text-white border-accent' : 'bg-card dark:bg-card-dark text-txt-muted dark:text-txt-dark-muted border-bdr dark:border-bdr-dark hover:border-accent') + '">' + f + '</button>'; });
+      h += '</div><button onclick="openTaskModal()" class="flex items-center gap-2 px-4 py-2.5 bg-accent text-white rounded-xl text-sm font-600 hover:bg-accent-dark transition"><i class="fa-solid fa-plus"></i>Add Task</button></div><div id="tasksList" class="space-y-2"></div>';
+      return h;
+    }
+    function renderTasksList() {
+      const tasks = DB.get('tasks');
+      const filtered = taskFilter === 'All' ? tasks : tasks.filter(t => t.status === taskFilter);
+      const sorted = [...filtered].sort((a, b) => {
+        if (a.status === 'Completed' && b.status !== 'Completed') return 1;
+        if (a.status !== 'Completed' && b.status === 'Completed') return -1;
+        return new Date(a.deadline) - new Date(b.deadline);
+      });
+      const c = document.getElementById('tasksList'); if (!c) return;
+      if (!sorted.length) { c.innerHTML = '<div class="text-center py-12"><i class="fa-solid fa-clipboard-check text-4xl text-bdr dark:text-bdr-dark mb-3 block"></i><p class="text-txt-muted dark:text-txt-dark-muted">No tasks found</p></div>'; return; }
+      c.innerHTML = sorted.map(t => {
+        const pc = t.priority==='High'?'badge-high':t.priority==='Medium'?'badge-medium':'badge-low';
+        const sc = t.status==='Completed'?'badge-completed':t.status==='In Progress'?'badge-progress':'badge-pending';
+        const over = new Date(t.deadline) < new Date() && t.status !== 'Completed';
+        return '<div class="anim-fade bg-card dark:bg-card-dark rounded-xl p-4 border border-bdr dark:border-bdr-dark flex items-start gap-3 ' + (t.status==='Completed'?'opacity-60':'') + '"><div class="task-check ' + (t.status==='Completed'?'checked':'') + ' mt-0.5" onclick="toggleTaskStatus(\'' + t.id + '\')"></div><div class="flex-1 min-w-0"><p class="font-600 text-sm ' + (t.status==='Completed'?'line-through text-txt-muted dark:text-txt-dark-muted':'') + '">' + t.title + '</p>' + (t.description?'<p class="text-xs text-txt-muted dark:text-txt-dark-muted mt-1 line-clamp-2">'+t.description+'</p>':'') + '<div class="flex items-center gap-2 mt-2 flex-wrap"><span class="text-[11px] font-600 px-2 py-0.5 rounded-md '+pc+'">'+t.priority+'</span><span class="text-[11px] font-600 px-2 py-0.5 rounded-md '+sc+'">'+t.status+'</span><span class="text-[11px] '+(over?'text-red-500 font-600':'text-txt-muted dark:text-txt-dark-muted')+'"><i class="fa-regular fa-clock mr-1"></i>'+fmtDateTime(t.deadline)+'</span>' + (over?'<span class="text-[11px] font-600 text-red-500">OVERDUE</span>':'') + '</div></div><div class="flex gap-1"><button onclick="openTaskModal(\''+t.id+'\')" class="w-8 h-8 rounded-lg hover:bg-surface dark:hover:bg-surface-dark flex items-center justify-center transition"><i class="fa-solid fa-pen text-xs text-txt-muted dark:text-txt-dark-muted"></i></button><button onclick="deleteTask(\''+t.id+'\')" class="w-8 h-8 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center justify-center transition"><i class="fa-solid fa-trash text-xs text-red-400"></i></button></div></div>';
+      }).join('');
+    }
+    function openTaskModal(id) {
+      editingId = id || null;
+      const task = id ? DB.get('tasks').find(t => t.id === id) : null;
+      const v = task ? task : { title:'', description:'', deadline:'', priority:'Medium', status:'Pending' };
+      let h = '<form onsubmit="saveTask(event)" class="space-y-4">';
+      h += '<div><label class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1 block">Title</label><input id="taskTitle" value="'+v.title+'" required class="w-full px-3 py-2.5 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark text-sm focus:outline-none focus:border-accent transition" placeholder="Task title..."></div>';
+      h += '<div><label class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1 block">Description</label><textarea id="taskDesc" rows="2" class="w-full px-3 py-2.5 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark text-sm focus:outline-none focus:border-accent transition resize-none" placeholder="Optional description...">'+v.description+'</textarea></div>';
+      h += '<div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1 block">Deadline</label><input id="taskDeadline" type="datetime-local" value="'+v.deadline+'" required class="w-full px-3 py-2.5 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark text-sm focus:outline-none focus:border-accent transition"></div>';
+      h += '<div><label class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1 block">Priority</label><select id="taskPriority" class="w-full px-3 py-2.5 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark text-sm focus:outline-none focus:border-accent transition"><option '+(v.priority==='High'?'selected':'')+'>High</option><option '+(v.priority==='Medium'?'selected':'')+'>Medium</option><option '+(v.priority==='Low'?'selected':'')+'>Low</option></select></div></div>';
+      if (task) h += '<div><label class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1 block">Status</label><select id="taskStatus" class="w-full px-3 py-2.5 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark text-sm focus:outline-none focus:border-accent transition"><option '+(v.status==='Pending'?'selected':'')+'>Pending</option><option '+(v.status==='In Progress'?'selected':'')+'>In Progress</option><option '+(v.status==='Completed'?'selected':'')+'>Completed</option></select></div>';
+      h += '<button type="submit" class="w-full py-2.5 bg-accent text-white rounded-xl font-600 text-sm hover:bg-accent-dark transition">'+(id?'Update Task':'Create Task')+'</button></form>';
+      openModal(id ? 'Edit Task' : 'New Task', h);
+    }
+    function saveTask(e) {
+      e.preventDefault();
+      const tasks = DB.get('tasks');
+      const data = { title:$('#taskTitle').value.trim(), description:$('#taskDesc').value.trim(), deadline:$('#taskDeadline').value, priority:$('#taskPriority').value };
+      if (editingId) { const t = tasks.find(x => x.id === editingId); Object.assign(t, data, { status:$('#taskStatus').value }); toast('Task updated'); }
+      else { tasks.push({ id:DB.id(), ...data, status:'Pending', createdAt:new Date().toISOString() }); toast('Task created'); }
+      DB.set('tasks', tasks); closeModal(); renderTasksList(); updateNotifBadge();
+    }
+    function toggleTaskStatus(id) { const tasks = DB.get('tasks'); const t = tasks.find(x => x.id === id); if (t) { t.status = t.status==='Completed'?'Pending':'Completed'; DB.set('tasks', tasks); renderTasksList(); updateNotifBadge(); } }
+    function deleteTask(id) { DB.set('tasks', DB.get('tasks').filter(t => t.id !== id)); toast('Task deleted','warning'); renderTasksList(); updateNotifBadge(); }
+
+    /* ===== INCOME ===== */
+    function getIncomeHTML() {
+      const periods = [['all','All'],['today','Today'],['week','This Week'],['month','This Month']];
+      let h = '<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5"><div class="flex gap-2 flex-wrap">';
+      periods.forEach(([v,l]) => { h += '<button onclick="incomePeriod=\''+v+'\';renderIncomeList()" class="px-3 py-1.5 rounded-lg text-xs font-600 border transition '+(incomePeriod===v?'bg-accent text-white border-accent':'bg-card dark:bg-card-dark text-txt-muted dark:text-txt-dark-muted border-bdr dark:border-bdr-dark hover:border-accent')+'">'+l+'</button>'; });
+      h += '</div><div class="flex items-center gap-3"><span id="incomeTotal" class="text-lg font-800 text-accent"></span><button onclick="openIncomeModal()" class="flex items-center gap-2 px-4 py-2.5 bg-accent text-white rounded-xl text-sm font-600 hover:bg-accent-dark transition"><i class="fa-solid fa-plus"></i>Add Income</button></div></div>';
+      h += '<div class="bg-card dark:bg-card-dark rounded-2xl border border-bdr dark:border-bdr-dark overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="border-b border-bdr dark:border-bdr-dark bg-surface dark:bg-surface-dark"><th class="text-left px-4 py-3 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Date</th><th class="text-left px-4 py-3 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Customer</th><th class="text-left px-4 py-3 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Service</th><th class="text-left px-4 py-3 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Amount</th><th class="text-left px-4 py-3 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Method</th><th class="text-right px-4 py-3 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Actions</th></tr></thead><tbody id="incomeTableBody"></tbody></table></div><div id="incomeEmpty" class="hidden text-center py-10"><i class="fa-solid fa-wallet text-3xl text-bdr dark:text-bdr-dark mb-2 block"></i><p class="text-txt-muted dark:text-txt-dark-muted text-sm">No income records</p></div></div>';
+      return h;
+    }
+    function getFilteredIncome() {
+      const income = DB.get('income'); const t = new Date();
+      if (incomePeriod === 'today') return income.filter(i => i.date === today());
+      if (incomePeriod === 'week') { const s = new Date(); s.setDate(s.getDate()-s.getDay()); return income.filter(i => new Date(i.date)>=s); }
+      if (incomePeriod === 'month') return income.filter(i => { const d=new Date(i.date); return d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear(); });
+      return income;
+    }
+    function renderIncomeList() {
+      const filtered = [...getFilteredIncome()].sort((a,b) => new Date(b.date)-new Date(a.date));
+      const total = filtered.reduce((s,i)=>s+Number(i.amount),0);
+      const te = document.getElementById('incomeTotal'); if (te) te.textContent = fmt(total);
+      const tb = document.getElementById('incomeTableBody'); if (!tb) return;
+      const em = document.getElementById('incomeEmpty');
+      if (!filtered.length) { tb.innerHTML=''; em.classList.remove('hidden'); return; }
+      em.classList.add('hidden');
+      tb.innerHTML = filtered.map(i => {
+        const mi = i.paymentMethod==='M-Pesa'?'fa-mobile-screen text-green-500':i.paymentMethod==='Cash'?'fa-money-bill text-emerald-600':'fa-building-columns text-sky-500';
+        return '<tr class="tbl-row border-b border-bdr dark:border-bdr-dark last:border-0"><td class="px-4 py-3 text-xs">'+fmtDate(i.date)+'</td><td class="px-4 py-3 font-600">'+i.customerName+'</td><td class="px-4 py-3 text-txt-muted dark:text-txt-dark-muted">'+i.service+'</td><td class="px-4 py-3 font-700 text-emerald-600">'+fmt(i.amount)+'</td><td class="px-4 py-3"><span class="flex items-center gap-1.5 text-xs"><i class="fa-solid '+mi+'"></i>'+i.paymentMethod+'</span></td><td class="px-4 py-3 text-right"><button onclick="openIncomeModal(\''+i.id+'\')" class="text-txt-muted hover:text-accent transition mr-2"><i class="fa-solid fa-pen text-xs"></i></button><button onclick="deleteIncome(\''+i.id+'\')" class="text-txt-muted hover:text-red-500 transition"><i class="fa-solid fa-trash text-xs"></i></button></td></tr>';
+      }).join('');
+    }
+    function openIncomeModal(id) {
+      editingId = id || null;
+      const inc = id ? DB.get('income').find(i => i.id === id) : null;
+      const v = inc || { date:today(), customerName:'', service:'', amount:'', paymentMethod:'M-Pesa' };
+      const svcs = ['Mathematics Tuition','English Tuition','Science Tuition','Kiswahili Tuition','Poster Design','Logo Design','Computer Skills Program','Holiday Program','Revision Package','Other'];
+      let h = '<form onsubmit="saveIncome(event)" class="space-y-4">';
+      h += '<div><label class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1 block">Date</label><input id="incDate" type="date" value="'+v.date+'" required class="w-full px-3 py-2.5 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark text-sm focus:outline-none focus:border-accent transition"></div>';
+      h += '<div><label class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1 block">Customer Name</label><input id="incCustomer" value="'+v.customerName+'" required class="w-full px-3 py-2.5 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark text-sm focus:outline-none focus:border-accent transition" placeholder="e.g. John Mwangi"></div>';
+      h += '<div><label class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1 block">Service</label><select id="incService" required class="w-full px-3 py-2.5 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark text-sm focus:outline-none focus:border-accent transition"><option value="">Select service...</option>';
+      svcs.forEach(s => { h += '<option '+(v.service===s?'selected':'')+'>'+s+'</option>'; });
+      h += '</select></div><div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1 block">Amount (KSh)</label><input id="incAmount" type="number" min="0" value="'+v.amount+'" required class="w-full px-3 py-2.5 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark text-sm focus:outline-none focus:border-accent transition" placeholder="0"></div>';
+      h += '<div><label class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1 block">Payment Method</label><select id="incMethod" required class="w-full px-3 py-2.5 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark text-sm focus:outline-none focus:border-accent transition"><option '+(v.paymentMethod==='M-Pesa'?'selected':'')+'>M-Pesa</option><option '+(v.paymentMethod==='Cash'?'selected':'')+'>Cash</option><option '+(v.paymentMethod==='Bank Transfer'?'selected':'')+'>Bank Transfer</option></select></div></div>';
+      h += '<button type="submit" class="w-full py-2.5 bg-accent text-white rounded-xl font-600 text-sm hover:bg-accent-dark transition">'+(id?'Update':'Record Income')+'</button></form>';
+      openModal(id ? 'Edit Income' : 'Record Income', h);
+    }
+    function saveIncome(e) {
+      e.preventDefault();
+      const data = { date:$('#incDate').value, customerName:$('#incCustomer').value.trim(), service:$('#incService').value, amount:Number($('#incAmount').value), paymentMethod:$('#incMethod').value };
+      const income = DB.get('income');
+      if (editingId) { const i = income.find(x => x.id === editingId); Object.assign(i, data); toast('Income updated'); }
+      else { income.push({ id:DB.id(), ...data, createdAt:new Date().toISOString() }); toast('Income recorded'); }
+      DB.set('income', income); closeModal(); renderIncomeList();
+    }
+    function deleteIncome(id) { DB.set('income', DB.get('income').filter(i => i.id !== id)); toast('Income deleted','warning'); renderIncomeList(); }
+
+    /* ===== EXPENSES ===== */
+    function getExpensesHTML() {
+      const periods = [['all','All'],['today','Today'],['week','This Week'],['month','This Month']];
+      let h = '<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5"><div class="flex gap-2 flex-wrap">';
+      periods.forEach(([v,l]) => { h += '<button onclick="expPeriod=\''+v+'\';renderExpensesList()" class="px-3 py-1.5 rounded-lg text-xs font-600 border transition '+(expPeriod===v?'bg-accent text-white border-accent':'bg-card dark:bg-card-dark text-txt-muted dark:text-txt-dark-muted border-bdr dark:border-bdr-dark hover:border-accent')+'">'+l+'</button>'; });
+      h += '</div><div class="flex items-center gap-3"><span id="expTotal" class="text-lg font-800 text-red-500"></span><button onclick="openExpenseModal()" class="flex items-center gap-2 px-4 py-2.5 bg-accent text-white rounded-xl text-sm font-600 hover:bg-accent-dark transition"><i class="fa-solid fa-plus"></i>Add Expense</button></div></div>';
+      h += '<div class="bg-card dark:bg-card-dark rounded-2xl border border-bdr dark:border-bdr-dark overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="border-b border-bdr dark:border-bdr-dark bg-surface dark:bg-surface-dark"><th class="text-left px-4 py-3 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Date</th><th class="text-left px-4 py-3 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Item/Service</th><th class="text-left px-4 py-3 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Category</th><th class="text-left px-4 py-3 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Amount</th><th class="text-right px-4 py-3 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Actions</th></tr></thead><tbody id="expTableBody"></tbody></table></div><div id="expEmpty" class="hidden text-center py-10"><i class="fa-solid fa-receipt text-3xl text-bdr dark:text-bdr-dark mb-2 block"></i><p class="text-txt-muted dark:text-txt-dark-muted text-sm">No expense records</p></div></div>';
+      return h;
+    }
+    function getFilteredExpenses() {
+      const expenses = DB.get('expenses'); const t = new Date();
+      if (expPeriod === 'today') return expenses.filter(e => e.date === today());
+      if (expPeriod === 'week') { const s = new Date(); s.setDate(s.getDate()-s.getDay()); return expenses.filter(e => new Date(e.date)>=s); }
+      if (expPeriod === 'month') return expenses.filter(e => { const d=new Date(e.date); return d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear(); });
+      return expenses;
+    }
+    function renderExpensesList() {
+      const filtered = [...getFilteredExpenses()].sort((a,b) => new Date(b.date)-new Date(a.date));
+      const total = filtered.reduce((s,e)=>s+Number(e.amount),0);
+      const te = document.getElementById('expTotal'); if (te) te.textContent = fmt(total);
+      const tb = document.getElementById('expTableBody'); if (!tb) return;
+      const em = document.getElementById('expEmpty');
+      if (!filtered.length) { tb.innerHTML=''; em.classList.remove('hidden'); return; }
+      em.classList.add('hidden');
+      tb.innerHTML = filtered.map(e => '<tr class="tbl-row border-b border-bdr dark:border-bdr-dark last:border-0"><td class="px-4 py-3 text-xs">'+fmtDate(e.date)+'</td><td class="px-4 py-3 font-600">'+e.item+'</td><td class="px-4 py-3"><span class="text-xs font-500 px-2 py-0.5 rounded-md bg-surface dark:bg-surface-dark">'+e.category+'</span></td><td class="px-4 py-3 font-700 text-red-500">-'+fmt(e.amount)+'</td><td class="px-4 py-3 text-right"><button onclick="openExpenseModal(\''+e.id+'\')" class="text-txt-muted hover:text-accent transition mr-2"><i class="fa-solid fa-pen text-xs"></i></button><button onclick="deleteExpense(\''+e.id+'\')" class="text-txt-muted hover:text-red-500 transition"><i class="fa-solid fa-trash text-xs"></i></button></td></tr>').join('');
+    }
+    function openExpenseModal(id) {
+      editingId = id || null;
+      const exp = id ? DB.get('expenses').find(e => e.id === id) : null;
+      const v = exp || { date:today(), item:'', amount:'', category:'' };
+      const cats = ['Transport','Rent','Materials','Internet','Marketing','Utilities','Other'];
+      let h = '<form onsubmit="saveExpense(event)" class="space-y-4">';
+      h += '<div><label class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1 block">Date</label><input id="expDate" type="date" value="'+v.date+'" required class="w-full px-3 py-2.5 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark text-sm focus:outline-none focus:border-accent transition"></div>';
+      h += '<div><label class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1 block">Item/Service</label><input id="expItem" value="'+v.item+'" required class="w-full px-3 py-2.5 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark text-sm focus:outline-none focus:border-accent transition" placeholder="e.g. Printing materials"></div>';
+      h += '<div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1 block">Amount (KSh)</label><input id="expAmount" type="number" min="0" value="'+v.amount+'" required class="w-full px-3 py-2.5 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark text-sm focus:outline-none focus:border-accent transition" placeholder="0"></div>';
+      h += '<div><label class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1 block">Category</label><select id="expCategory" required class="w-full px-3 py-2.5 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark text-sm focus:outline-none focus:border-accent transition"><option value="">Select...</option>';
+      cats.forEach(c => { h += '<option '+(v.category===c?'selected':'')+'>'+c+'</option>'; });
+      h += '</select></div></div><button type="submit" class="w-full py-2.5 bg-accent text-white rounded-xl font-600 text-sm hover:bg-accent-dark transition">'+(id?'Update':'Record Expense')+'</button></form>';
+      openModal(id ? 'Edit Expense' : 'Record Expense', h);
+    }
+    function saveExpense(e) {
+      e.preventDefault();
+      const data = { date:$('#expDate').value, item:$('#expItem').value.trim(), amount:Number($('#expAmount').value), category:$('#expCategory').value };
+      const expenses = DB.get('expenses');
+      if (editingId) { const ex = expenses.find(x => x.id === editingId); Object.assign(ex, data); toast('Expense updated'); }
+      else { expenses.push({ id:DB.id(), ...data, createdAt:new Date().toISOString() }); toast('Expense recorded'); }
+      DB.set('expenses', expenses); closeModal(); renderExpensesList();
+    }
+    function deleteExpense(id) { DB.set('expenses', DB.get('expenses').filter(e => e.id !== id)); toast('Expense deleted','warning'); renderExpensesList(); }
+
+    /* ===== PROFIT ===== */
+    function getProfitHTML() {
+      return '<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6"><div class="stat-card bg-card dark:bg-card-dark rounded-2xl p-5 border border-bdr dark:border-bdr-dark"><p class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1">Today\'s Profit</p><p class="text-2xl font-800" id="profitToday">KSh 0</p></div><div class="stat-card bg-card dark:bg-card-dark rounded-2xl p-5 border border-bdr dark:border-bdr-dark"><p class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1">This Month</p><p class="text-2xl font-800" id="profitMonth">KSh 0</p></div><div class="stat-card bg-card dark:bg-card-dark rounded-2xl p-5 border border-bdr dark:border-bdr-dark"><p class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1">Overall Profit</p><p class="text-2xl font-800" id="profitOverall">KSh 0</p></div></div><div class="bg-card dark:bg-card-dark rounded-2xl p-5 border border-bdr dark:border-bdr-dark mb-6"><h3 class="font-700 text-sm mb-4">Income vs Expenses (Last 6 Months)</h3><div style="height:300px"><canvas id="profitChart"></canvas></div></div><div class="bg-card dark:bg-card-dark rounded-2xl p-5 border border-bdr dark:border-bdr-dark"><h3 class="font-700 text-sm mb-4">Monthly Breakdown</h3><div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="border-b border-bdr dark:border-bdr-dark"><th class="text-left px-4 py-2 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Month</th><th class="text-right px-4 py-2 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Income</th><th class="text-right px-4 py-2 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Expenses</th><th class="text-right px-4 py-2 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Profit</th><th class="text-right px-4 py-2 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Margin</th></tr></thead><tbody id="profitTableBody"></tbody></table></div></div>';
+    }
+    function renderProfitData() {
+      const income = DB.get('income'); const expenses = DB.get('expenses'); const t = new Date();
+      const ti = income.filter(i=>i.date===today()).reduce((s,i)=>s+Number(i.amount),0);
+      const te = expenses.filter(e=>e.date===today()).reduce((s,e)=>s+Number(e.amount),0);
+      const tp = ti-te;
+      const pt = document.getElementById('profitToday'); if(pt){pt.textContent=fmt(tp);pt.style.color=tp<0?'#ef4444':'#10b981';}
+      const mi = income.filter(i=>{const d=new Date(i.date);return d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear()}).reduce((s,i)=>s+Number(i.amount),0);
+      const me = expenses.filter(e=>{const d=new Date(e.date);return d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear()}).reduce((s,e)=>s+Number(e.amount),0);
+      const mp = mi-me;
+      const pm = document.getElementById('profitMonth'); if(pm){pm.textContent=fmt(mp);pm.style.color=mp<0?'#ef4444':'#10b981';}
+      const oi = income.reduce((s,i)=>s+Number(i.amount),0);
+      const oe = expenses.reduce((s,e)=>s+Number(e.amount),0);
+      const op = oi-oe;
+      const po = document.getElementById('profitOverall'); if(po){po.textContent=fmt(op);po.style.color=op<0?'#ef4444':'#10b981';}
+      const months = [];
+      for(let i=5;i>=0;i--){const d=new Date();d.setMonth(d.getMonth()-i);months.push({label:d.toLocaleDateString('en-KE',{month:'long',year:'numeric'}),m:d.getMonth(),y:d.getFullYear()});}
+      const tb = document.getElementById('profitTableBody'); if(tb){
+        tb.innerHTML = months.map(m=>{
+          const mI=income.filter(i=>{const d=new Date(i.date);return d.getMonth()===m.m&&d.getFullYear()===m.y}).reduce((s,i)=>s+Number(i.amount),0);
+          const mE=expenses.filter(e=>{const d=new Date(e.date);return d.getMonth()===m.m&&d.getFullYear()===m.y}).reduce((s,e)=>s+Number(e.amount),0);
+          const mP=mI-mE;const mg=mI>0?Math.round((mP/mI)*100):0;
+          return '<tr class="tbl-row border-b border-bdr dark:border-bdr-dark last:border-0"><td class="px-4 py-3 font-600 text-xs">'+m.label+'</td><td class="px-4 py-3 text-right font-600 text-emerald-600 text-xs">'+fmt(mI)+'</td><td class="px-4 py-3 text-right font-600 text-red-500 text-xs">'+fmt(mE)+'</td><td class="px-4 py-3 text-right font-700 text-xs '+(mP>=0?'text-emerald-600':'text-red-500')+'">'+fmt(mP)+'</td><td class="px-4 py-3 text-right text-xs font-600 '+(mg>=0?'text-emerald-600':'text-red-500')+'">'+mg+'%</td></tr>';
+        }).join('');
+      }
+      renderProfitChart();
+    }
+    function renderProfitChart() {
+      const income=DB.get('income');const expenses=DB.get('expenses');
+      const dark=document.documentElement.classList.contains('dark');
+      const gc=dark?'rgba(148,163,184,0.08)':'rgba(0,0,0,0.04)';const tc=dark?'#94a3b8':'#64748b';
+      const months=[];for(let i=5;i>=0;i--){const d=new Date();d.setMonth(d.getMonth()-i);months.push({label:d.toLocaleDateString('en-KE',{month:'short',year:'2-digit'}),m:d.getMonth(),y:d.getFullYear()});}
+      const id=months.map(m=>income.filter(i=>{const d=new Date(i.date);return d.getMonth()===m.m&&d.getFullYear()===m.y}).reduce((s,i)=>s+Number(i.amount),0));
+      const ed=months.map(m=>expenses.filter(e=>{const d=new Date(e.date);return d.getMonth()===m.m&&d.getFullYear()===m.y}).reduce((s,e)=>s+Number(e.amount),0));
+      const ctx=document.getElementById('profitChart');
+      if(ctx){charts.profit=new Chart(ctx,{type:'line',data:{labels:months.map(m=>m.label),datasets:[{label:'Income',data:id,borderColor:'#10b981',backgroundColor:'rgba(16,185,129,0.1)',fill:true,tension:0.4,pointRadius:4,pointBackgroundColor:'#10b981'},{label:'Expenses',data:ed,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.1)',fill:true,tension:0.4,pointRadius:4,pointBackgroundColor:'#ef4444'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tc,font:{size:11},boxWidth:10}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:11}}},y:{grid:{color:gc},ticks:{color:tc,font:{size:11},callback:v=>'KSh '+(v/1000).toFixed(0)+'k'}}}}});}
+    }
+
+    /* ===== STUDENTS ===== */
+    function getStudentsHTML() {
+      const filters = ['All','Paid','Pending'];
+      let h = '<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5"><div class="flex gap-2 flex-wrap">';
+      filters.forEach(f => { h += '<button onclick="studentFilter=\''+f+'\';renderStudentsList()" class="px-3 py-1.5 rounded-lg text-xs font-600 border transition '+(studentFilter===f?'bg-accent text-white border-accent':'bg-card dark:bg-card-dark text-txt-muted dark:text-txt-dark-muted border-bdr dark:border-bdr-dark hover:border-accent')+'">'+f+'</button>'; });
+      h += '</div><button onclick="openStudentModal()" class="flex items-center gap-2 px-4 py-2.5 bg-accent text-white rounded-xl text-sm font-600 hover:bg-accent-dark transition"><i class="fa-solid fa-plus"></i>Add Student</button></div><div id="studentsList" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>';
+      return h;
+    }
+    function renderStudentsList() {
+      const students = DB.get('students');
+      const filtered = studentFilter==='All'?students:students.filter(s=>s.paymentStatus===studentFilter);
+      const c = document.getElementById('studentsList'); if(!c) return;
+      if(!filtered.length){c.innerHTML='<div class="col-span-full text-center py-12"><i class="fa-solid fa-user-graduate text-4xl text-bdr dark:text-bdr-dark mb-3 block"></i><p class="text-txt-muted dark:text-txt-dark-muted">No students found</p></div>';return;}
+      c.innerHTML = filtered.map(s => {
+        const bal=(s.totalFees||0)-(s.feesPaid||0);
+        const sc=s.paymentStatus==='Paid'?'badge-paid':'badge-pending';
+        const pct=s.totalFees>0?Math.round((s.feesPaid/s.totalFees)*100):0;
+        const initials=s.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+        return '<div class="anim-fade bg-card dark:bg-card-dark rounded-2xl p-5 border border-bdr dark:border-bdr-dark"><div class="flex items-start justify-between mb-3"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-accent-light dark:bg-accent/10 flex items-center justify-center"><span class="text-accent font-700 text-sm">'+initials+'</span></div><div><p class="font-700 text-sm">'+s.name+'</p><p class="text-xs text-txt-muted dark:text-txt-dark-muted"><i class="fa-solid fa-phone text-[10px] mr-1"></i>'+s.contact+'</p></div></div><span class="text-[11px] font-600 px-2 py-0.5 rounded-md '+sc+'">'+s.paymentStatus+'</span></div><div class="mb-3"><p class="text-xs text-txt-muted dark:text-txt-dark-muted mb-0.5">Service</p><p class="text-sm font-500">'+s.service+'</p></div><div class="mb-3"><div class="flex justify-between text-xs mb-1"><span class="text-txt-muted dark:text-txt-dark-muted">Payment Progress</span><span class="font-600">'+pct+'%</span></div><div class="w-full h-2 bg-surface dark:bg-surface-dark rounded-full overflow-hidden"><div class="h-full rounded-full transition-all '+(pct===100?'bg-emerald-500':'bg-accent')+'" style="width:'+pct+'%"></div></div></div><div class="flex justify-between text-xs"><span class="text-txt-muted dark:text-txt-dark-muted">Paid: <strong class="text-emerald-600">'+fmt(s.feesPaid||0)+'</strong></span><span class="text-txt-muted dark:text-txt-dark-muted">Balance: <strong class="'+(bal>0?'text-red-500':'text-emerald-600')+'">'+fmt(bal)+'</strong></span></div><div class="flex gap-2 mt-4"><button onclick="openStudentModal(\''+s.id+'\')" class="flex-1 py-2 rounded-xl border border-bdr dark:border-bdr-dark text-xs font-600 hover:border-accent hover:text-accent transition">Edit</button><button onclick="recordPayment(\''+s.id+'\')" class="flex-1 py-2 rounded-xl bg-accent text-white text-xs font-600 hover:bg-accent-dark transition">Record Payment</button><button onclick="deleteStudent(\''+s.id+'\')" class="py-2 px-3 rounded-xl border border-bdr dark:border-bdr-dark text-xs hover:border-red-500 hover:text-red-500 transition"><i class="fa-solid fa-trash"></i></button></div></div>';
+      }).join('');
+    }
+    function openStudentModal(id) {
+      editingId = id || null;
+      const s = id ? DB.get('students').find(x => x.id === id) : null;
+      const v = s || { name:'', contact:'', service:'', totalFees:'', feesPaid:0 };
+      const svcs = ['Mathematics Tuition','English Tuition','Science Tuition','Kiswahili Tuition','Poster Design','Logo Design','Computer Skills Program','Holiday Program','Revision Package','Other'];
+      let h = '<form onsubmit="saveStudent(event)" class="space-y-4">';
+      h += '<div><label class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1 block">Full Name</label><input id="stuName" value="'+v.name+'" required class="w-full px-3 py-2.5 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark text-sm focus:outline-none focus:border-accent transition" placeholder="e.g. John Mwangi"></div>';
+      h += '<div><label class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1 block">Contact</label><input id="stuContact" value="'+v.contact+'" required class="w-full px-3 py-2.5 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark text-sm focus:outline-none focus:border-accent transition" placeholder="e.g. 0712345678"></div>';
+      h += '<div><label class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1 block">Service Enrolled</label><select id="stuService" required class="w-full px-3 py-2.5 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark text-sm focus:outline-none focus:border-accent transition"><option value="">Select...</option>';
+      svcs.forEach(sv => { h += '<option '+(v.service===sv?'selected':'')+'>'+sv+'</option>'; });
+      h += '</select></div><div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1 block">Total Fees (KSh)</label><input id="stuTotalFees" type="number" min="0" value="'+v.totalFees+'" required class="w-full px-3 py-2.5 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark text-sm focus:outline-none focus:border-accent transition" placeholder="0"></div>';
+      h += '<div><label class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1 block">Fees Paid (KSh)</label><input id="stuFeesPaid" type="number" min="0" value="'+v.feesPaid+'" class="w-full px-3 py-2.5 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark text-sm focus:outline-none focus:border-accent transition" placeholder="0"></div></div>';
+      h += '<button type="submit" class="w-full py-2.5 bg-accent text-white rounded-xl font-600 text-sm hover:bg-accent-dark transition">'+(id?'Update':'Add Student')+'</button></form>';
+      openModal(id ? 'Edit Student' : 'Add Student', h);
+    }
+    function saveStudent(e) {
+      e.preventDefault();
+      const tf=Number($('#stuTotalFees').value);const fp=Number($('#stuFeesPaid').value)||0;
+      const data={name:$('#stuName').value.trim(),contact:$('#stuContact').value.trim(),service:$('#stuService').value,totalFees:tf,feesPaid:fp,paymentStatus:fp>=tf?'Paid':'Pending'};
+      const students=DB.get('students');
+      if(editingId){const s=students.find(x=>x.id===editingId);Object.assign(s,data);toast('Student updated');}
+      else{students.push({id:DB.id(),...data,createdAt:new Date().toISOString()});toast('Student added');}
+      DB.set('students',students);closeModal();renderStudentsList();updateNotifBadge();
+    }
+    function recordPayment(id) {
+      editingId=id;const s=DB.get('students').find(x=>x.id===id);const bal=(s.totalFees||0)-(s.feesPaid||0);
+      openModal('Record Payment','<form onsubmit="savePayment(event)" class="space-y-4"><p class="text-sm">Recording payment for <strong>'+s.name+'</strong></p><p class="text-xs text-txt-muted dark:text-txt-dark-muted">Outstanding balance: <strong class="text-red-500">'+fmt(bal)+'</strong></p><div><label class="text-xs font-600 text-txt-muted dark:text-txt-dark-muted mb-1 block">Payment Amount (KSh)</label><input id="payAmount" type="number" min="1" max="'+bal+'" required class="w-full px-3 py-2.5 rounded-xl bg-surface dark:bg-surface-dark border border-bdr dark:border-bdr-dark text-sm focus:outline-none focus:border-accent transition" placeholder="Enter amount..."></div><button type="submit" class="w-full py-2.5 bg-accent text-white rounded-xl font-600 text-sm hover:bg-accent-dark transition">Record Payment</button></form>');
+    }
+    function savePayment(e) {
+      e.preventDefault();const amt=Number($('#payAmount').value);const students=DB.get('students');const s=students.find(x=>x.id===editingId);
+      s.feesPaid=(s.feesPaid||0)+amt;s.paymentStatus=s.feesPaid>=s.totalFees?'Paid':'Pending';
+      DB.set('students',students);closeModal();toast('Payment recorded');renderStudentsList();updateNotifBadge();
+    }
+    function deleteStudent(id){DB.set('students',DB.get('students').filter(s=>s.id!==id));toast('Student removed','warning');renderStudentsList();updateNotifBadge();}
+
+    /* ===== CALCULATOR ===== */
+    function getCalculatorHTML() {
+      return '<div class="max-w-sm mx-auto"><div class="bg-card dark:bg-card-dark rounded-2xl p-6 border border-bdr dark:border-bdr-dark shadow-lg"><div class="bg-surface dark:bg-surface-dark rounded-xl p-4 mb-4"><p class="text-xs text-txt-muted dark:text-txt-dark-muted h-5 text-right" id="calcPrev"></p><p class="text-3xl font-800 text-right tracking-tight" id="calcDisplay">0</p></div><div class="grid grid-cols-4 gap-2"><button class="calc-btn calc-clear h-14" onclick="calcClear()">AC</button><button class="calc-btn calc-clear h-14" onclick="calcBackspace()"><i class="fa-solid fa-delete-left"></i></button><button class="calc-btn calc-op h-14" onclick="calcPercent()">%</button><button class="calc-btn calc-op h-14" onclick="calcOperator(\'/\')"><i class="fa-solid fa-divide"></i></button><button class="calc-btn calc-num h-14" onclick="calcDigit(\'7\')">7</button><button class="calc-btn calc-num h-14" onclick="calcDigit(\'8\')">8</button><button class="calc-btn calc-num h-14" onclick="calcDigit(\'9\')">9</button><button class="calc-btn calc-op h-14" onclick="calcOperator(\'*\')"><i class="fa-solid fa-xmark"></i></button><button class="calc-btn calc-num h-14" onclick="calcDigit(\'4\')">4</button><button class="calc-btn calc-num h-14" onclick="calcDigit(\'5\')">5</button><button class="calc-btn calc-num h-14" onclick="calcDigit(\'6\')">6</button><button class="calc-btn calc-op h-14" onclick="calcOperator(\'-\')"><i class="fa-solid fa-minus"></i></button><button class="calc-btn calc-num h-14" onclick="calcDigit(\'1\')">1</button><button class="calc-btn calc-num h-14" onclick="calcDigit(\'2\')">2</button><button class="calc-btn calc-num h-14" onclick="calcDigit(\'3\')">3</button><button class="calc-btn calc-op h-14" onclick="calcOperator(\'+\')"><i class="fa-solid fa-plus"></i></button><button class="calc-btn calc-num h-14" onclick="calcToggleSign()">+/-</button><button class="calc-btn calc-num h-14" onclick="calcDigit(\'0\')">0</button><button class="calc-btn calc-num h-14" onclick="calcDot()">.</button><button class="calc-btn calc-eq h-14" onclick="calcEquals()">=</button></div></div><p class="text-center text-xs text-txt-muted dark:text-txt-dark-muted mt-4">Quick calculations for fees, change, totals</p></div>';
+    }
+    function updateCalcDisplay() {
+      const d=document.getElementById('calcDisplay');if(d)d.textContent=calcDisplay;
+      const p=document.getElementById('calcPrev');if(p){if(calcPrev!==null&&calcOp){const os=calcOp==='*'?'×':calcOp==='/'?'÷':calcOp;p.textContent=calcPrev+' '+os;}else p.textContent='';}
+    }
+    function calcDigit(d){if(calcReset){calcDisplay=d;calcReset=false;}else calcDisplay=calcDisplay==='0'?d:calcDisplay+d;updateCalcDisplay();}
+    function calcDot(){if(calcReset){calcDisplay='0.';calcReset=false;}else if(!calcDisplay.includes('.'))calcDisplay+='.';updateCalcDisplay();}
+    function calcOperator(op){if(calcOp&&!calcReset)calcEquals();calcPrev=calcDisplay;calcOp=op;calcReset=true;updateCalcDisplay();}
+    function calcEquals(){if(calcPrev===null||!calcOp)return;const a=parseFloat(calcPrev);const b=parseFloat(calcDisplay);let r=0;if(calcOp==='+')r=a+b;else if(calcOp==='-')r=a-b;else if(calcOp==='*')r=a*b;else if(calcOp==='/')r=b!==0?a/b:'Error';calcDisplay=typeof r==='number'?parseFloat(r.toFixed(10)).toString():r;calcPrev=null;calcOp=null;calcReset=true;updateCalcDisplay();}
+    function calcClear(){calcDisplay='0';calcOp=null;calcPrev=null;calcReset=false;updateCalcDisplay();}
+    function calcBackspace(){calcDisplay=calcDisplay.length>1?calcDisplay.slice(0,-1):'0';updateCalcDisplay();}
+    function calcPercent(){calcDisplay=(parseFloat(calcDisplay)/100).toString();updateCalcDisplay();}
+    function calcToggleSign(){calcDisplay=(parseFloat(calcDisplay)*-1).toString();updateCalcDisplay();}
+
+    /* ===== REPORTS ===== */
+    function getReportsHTML() {
+      return '<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"><div class="anim-fade bg-card dark:bg-card-dark rounded-2xl p-6 border border-bdr dark:border-bdr-dark text-center"><div class="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center mx-auto mb-3"><i class="fa-solid fa-arrow-trend-up text-emerald-500 text-xl"></i></div><h3 class="font-700 mb-1">Income Report</h3><p class="text-xs text-txt-muted dark:text-txt-dark-muted mb-4">Complete income breakdown</p><div class="flex gap-2 justify-center"><button onclick="exportIncomePDF()" class="px-4 py-2 bg-accent text-white rounded-xl text-xs font-600 hover:bg-accent-dark transition"><i class="fa-solid fa-file-pdf mr-1"></i>PDF</button><button onclick="exportIncomeCSV()" class="px-4 py-2 border border-bdr dark:border-bdr-dark rounded-xl text-xs font-600 hover:border-accent hover:text-accent transition"><i class="fa-solid fa-file-csv mr-1"></i>CSV</button></div></div><div class="anim-fade bg-card dark:bg-card-dark rounded-2xl p-6 border border-bdr dark:border-bdr-dark text-center"><div class="w-14 h-14 rounded-2xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center mx-auto mb-3"><i class="fa-solid fa-receipt text-red-500 text-xl"></i></div><h3 class="font-700 mb-1">Expense Report</h3><p class="text-xs text-txt-muted dark:text-txt-dark-muted mb-4">Expense breakdown by category</p><div class="flex gap-2 justify-center"><button onclick="exportExpensePDF()" class="px-4 py-2 bg-accent text-white rounded-xl text-xs font-600 hover:bg-accent-dark transition"><i class="fa-solid fa-file-pdf mr-1"></i>PDF</button><button onclick="exportExpenseCSV()" class="px-4 py-2 border border-bdr dark:border-bdr-dark rounded-xl text-xs font-600 hover:border-accent hover:text-accent transition"><i class="fa-solid fa-file-csv mr-1"></i>CSV</button></div></div><div class="anim-fade bg-card dark:bg-card-dark rounded-2xl p-6 border border-bdr dark:border-bdr-dark text-center"><div class="w-14 h-14 rounded-2xl bg-accent-light dark:bg-accent/10 flex items-center justify-center mx-auto mb-3"><i class="fa-solid fa-coins text-accent text-xl"></i></div><h3 class="font-700 mb-1">Profit Summary</h3><p class="text-xs text-txt-muted dark:text-txt-dark-muted mb-4">Monthly profit with margins</p><div class="flex gap-2 justify-center"><button onclick="exportProfitPDF()" class="px-4 py-2 bg-accent text-white rounded-xl text-xs font-600 hover:bg-accent-dark transition"><i class="fa-solid fa-file-pdf mr-1"></i>PDF</button><button onclick="exportProfitCSV()" class="px-4 py-2 border border-bdr dark:border-bdr-dark rounded-xl text-xs font-600 hover:border-accent hover:text-accent transition"><i class="fa-solid fa-file-csv mr-1"></i>CSV</button></div></div></div><div class="anim-fade bg-card dark:bg-card-dark rounded-2xl p-6 border border-bdr dark:border-bdr-dark"><h3 class="font-700 mb-4">Students Payment Report</h3><div class="flex gap-2 justify-center mb-4"><button onclick="exportStudentsPDF()" class="px-4 py-2 bg-accent text-white rounded-xl text-xs font-600 hover:bg-accent-dark transition"><i class="fa-solid fa-file-pdf mr-1"></i>Export PDF</button><button onclick="exportStudentsCSV()" class="px-4 py-2 border border-bdr dark:border-bdr-dark rounded-xl text-xs font-600 hover:border-accent hover:text-accent transition"><i class="fa-solid fa-file-csv mr-1"></i>Export CSV</button></div><div class="overflow-x-auto"><table class="w-full text-sm" id="reportStudentsTable"><thead><tr class="border-b border-bdr dark:border-bdr-dark"><th class="text-left px-3 py-2 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Name</th><th class="text-left px-3 py-2 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Service</th><th class="text-right px-3 py-2 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Total</th><th class="text-right px-3 py-2 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Paid</th><th class="text-right px-3 py-2 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Balance</th><th class="text-center px-3 py-2 font-600 text-xs text-txt-muted dark:text-txt-dark-muted">Status</th></tr></thead><tbody></tbody></table></div></div>';
+    }
+    function populateStudentsReportTable() {
+      const students=DB.get('students');const tb=document.querySelector('#reportStudentsTable tbody');if(!tb)return;
+      tb.innerHTML=students.map(s=>{const bal=(s.totalFees||0)-(s.feesPaid||0);return '<tr class="tbl-row border-b border-bdr dark:border-bdr-dark last:border-0"><td class="px-3 py-2 text-xs font-600">'+s.name+'</td><td class="px-3 py-2 text-xs">'+s.service+'</td><td class="px-3 py-2 text-xs text-right">'+fmt(s.totalFees)+'</td><td class="px-3 py-2 text-xs text-right text-emerald-600">'+fmt(s.feesPaid)+'</td><td class="px-3 py-2 text-xs text-right '+(bal>0?'text-red-500':'')+'">'+fmt(bal)+'</td><td class="px-3 py-2 text-center"><span class="text-[11px] font-600 px-2 py-0.5 rounded-md '+(s.paymentStatus==='Paid'?'badge-paid':'badge-pending')+'">'+s.paymentStatus+'</span></td></tr>';}).join('');
+    }
+
+    /* ===== PDF / CSV EXPORT ===== */
+    function downloadCSV(csv,filename){const b=new Blob([csv],{type:'text/csv'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);}
+    function exportIncomePDF(){const{jsPDF}=window.jspdf;const doc=new jsPDF();doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text('Smart Minds - Income Report',14,22);doc.setFontSize(10);doc.setFont('helvetica','normal');doc.text('Generated: '+new Date().toLocaleDateString('en-KE'),14,30);const inc=DB.get('income').sort((a,b)=>new Date(b.date)-new Date(a.date));const tot=inc.reduce((s,i)=>s+Number(i.amount),0);doc.text('Total Income: KSh '+tot.toLocaleString(),14,38);doc.autoTable({startY:44,head:[['Date','Customer','Service','Amount','Method']],body:inc.map(i=>[fmtDate(i.date),i.customerName,i.service,'KSh '+Number(i.amount).toLocaleString(),i.paymentMethod]),styles:{fontSize:9},headStyles:{fillColor:[232,98,10]}});doc.save('income-report.pdf');toast('Income PDF exported');}
+    function exportIncomeCSV(){const inc=DB.get('income');let csv='Date,Customer,Service,Amount,Method\n';inc.forEach(i=>csv+=i.date+',"'+i.customerName+'","'+i.service+'",'+i.amount+',"'+i.paymentMethod+'"\n');downloadCSV(csv,'income-report.csv');toast('Income CSV exported');}
+    function exportExpensePDF(){const{jsPDF}=window.jspdf;const doc=new jsPDF();doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text('Smart Minds - Expense Report',14,22);doc.setFontSize(10);doc.setFont('helvetica','normal');doc.text('Generated: '+new Date().toLocaleDateString('en-KE'),14,30);const exp=DB.get('expenses').sort((a,b)=>new Date(b.date)-new Date(a.date));const tot=exp.reduce((s,e)=>s+Number(e.amount),0);doc.text('Total Expenses: KSh '+tot.toLocaleString(),14,38);doc.autoTable({startY:44,head:[['Date','Item','Category','Amount']],body:exp.map(e=>[fmtDate(e.date),e.item,e.category,'KSh '+Number(e.amount).toLocaleString()]),styles:{fontSize:9},headStyles:{fillColor:[239,68,68]}});doc.save('expense-report.pdf');toast('Expense PDF exported');}
+    function exportExpenseCSV(){const exp=DB.get('expenses');let csv='Date,Item,Category,Amount\n';exp.forEach(e=>csv+=e.date+',"'+e.item+'","'+e.category+'",'+e.amount+'\n');downloadCSV(csv,'expense-report.csv');toast('Expense CSV exported');}
+    function exportProfitPDF(){const{jsPDF}=window.jspdf;const doc=new jsPDF();doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text('Smart Minds - Profit Summary',14,22);doc.setFontSize(10);doc.setFont('helvetica','normal');doc.text('Generated: '+new Date().toLocaleDateString('en-KE'),14,30);const inc=DB.get('income');const exp=DB.get('expenses');const months=[];for(let i=5;i>=0;i--){const d=new Date();d.setMonth(d.getMonth()-i);months.push({label:d.toLocaleDateString('en-KE',{month:'long',year:'numeric'}),m:d.getMonth(),y:d.getFullYear()});}const rows=months.map(m=>{const mI=inc.filter(i=>{const d=new Date(i.date);return d.getMonth()===m.m&&d.getFullYear()===m.y}).reduce((s,i)=>s+Number(i.amount),0);const mE=exp.filter(e=>{const d=new Date(e.date);return d.getMonth()===m.m&&d.getFullYear()===m.y}).reduce((s,e)=>s+Number(e.amount),0);return[m.label,'KSh '+mI.toLocaleString(),'KSh '+mE.toLocaleString(),'KSh '+(mI-mE).toLocaleString(),mI>0?Math.round((mI-mE)/mI*100)+'%':'0%'];});doc.autoTable({startY:38,head:[['Month','Income','Expenses','Profit','Margin']],body:rows,styles:{fontSize:9},headStyles:{fillColor:[232,98,10]}});doc.save('profit-summary.pdf');toast('Profit PDF exported');}
+    function exportProfitCSV(){const inc=DB.get('income');const exp=DB.get('expenses');let csv='Month,Income,Expenses,Profit,Margin\n';for(let i=5;i>=0;i--){const d=new Date();d.setMonth(d.getMonth()-i);const m=d.getMonth(),y=d.getFullYear();const mI=inc.filter(i=>{const dd=new Date(i.date);return dd.getMonth()===m&&dd.getFullYear()===y}).reduce((s,i)=>s+Number(i.amount),0);const mE=exp.filter(e=>{const dd=new Date(e.date);return dd.getMonth()===m&&dd.getFullYear()===y}).reduce((s,e)=>s+Number(e.amount),0);csv+=d.toLocaleDateString('en-KE',{month:'long',year:'numeric'})+','+mI+','+mE+','+(mI-mE)+','+(mI>0?Math.round((mI-mE)/mI*100):0)+'%\n';}downloadCSV(csv,'profit-summary.csv');toast('Profit CSV exported');}
+    function exportStudentsPDF(){const{jsPDF}=window.jspdf;const doc=new jsPDF();doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text('Smart Minds - Students Report',14,22);doc.setFontSize(10);doc.setFont('helvetica','normal');doc.text('Generated: '+new Date().toLocaleDateString('en-KE'),14,30);const stu=DB.get('students');doc.autoTable({startY:38,head:[['Name','Contact','Service','Total Fees','Paid','Balance','Status']],body:stu.map(s=>[s.name,s.contact,s.service,'KSh '+(s.totalFees||0).toLocaleString(),'KSh '+(s.feesPaid||0).toLocaleString(),'KSh '+((s.totalFees||0)-(s.feesPaid||0)).toLocaleString(),s.paymentStatus]),styles:{fontSize:8},headStyles:{fillColor:[14,165,233]}});doc.save('students-report.pdf');toast('Students PDF exported');}
+    function exportStudentsCSV(){const stu=DB.get('students');let csv='Name,Contact,Service,Total Fees,Paid,Balance,Status\n';stu.forEach(s=>csv+='"'+s.name+'","'+s.contact+'","'+s.service+'",'+(s.totalFees||0)+','+(s.feesPaid||0)+','+((s.totalFees||0)-(s.feesPaid||0))+','+s.paymentStatus+'\n');downloadCSV(csv,'students-report.csv');toast('Students CSV exported');}
+
+    /* ===== NOTIFICATIONS PAGE ===== */
+    function getNotificationsHTML() { return '<div id="notifList" class="space-y-3"></div>'; }
+    function renderNotificationsList() {
+      const notes = getNotifications();
+      const c = document.getElementById('notifList'); if (!c) return;
+      if (!notes.length) { c.innerHTML = '<div class="text-center py-16"><i class="fa-solid fa-bell-slash text-4xl text-bdr dark:text-bdr-dark mb-3 block"></i><p class="text-txt-muted dark:text-txt-dark-muted">All caught up! No notifications.</p></div>'; return; }
+      c.innerHTML = notes.map(n => '<div class="anim-fade flex items-start gap-3 bg-card dark:bg-card-dark rounded-xl p-4 border border-bdr dark:border-bdr-dark"><div class="w-10 h-10 rounded-xl bg-surface dark:bg-surface-dark flex items-center justify-center flex-shrink-0"><i class="fa-solid '+n.icon+' '+n.color+'"></i></div><div><p class="font-600 text-sm">'+n.title+'</p><p class="text-xs text-txt-muted dark:text-txt-dark-muted mt-0.5">'+n.desc+'</p></div></div>').join('');
+    }
+
+    /* ===== SEED DATA ===== */
+    function seedData() {
+      if (DB.get('tasks').length > 0) return;
+      const id = DB.id;
+      // Seed tasks
+      DB.set('tasks', [
+        { id:id(), title:'Prepare Form 2 Mathematics lesson plan', description:'Cover algebra and quadratic equations', deadline:daysLater(1)+'T09:00', priority:'High', status:'In Progress', createdAt:new Date().toISOString() },
+        { id:id(), title:'Design poster for holiday program', description:'A3 size, colorful, include contact details', deadline:daysLater(2)+'T14:00', priority:'High', status:'Pending', createdAt:new Date().toISOString() },
+        { id:id(), title:'Follow up with pending fee parents', description:'Call parents of students with unpaid balances', deadline:daysLater(0)+'T17:00', priority:'Medium', status:'Pending', createdAt:new Date().toISOString() },
+        { id:id(), title:'Order printing materials', description:'A4 paper, ink cartridges, card stock', deadline:daysLater(3)+'T12:00', priority:'Low', status:'Pending', createdAt:new Date().toISOString() },
+        { id:id(), title:'Grade English compositions', description:'Form 3 set 2 compositions', deadline:daysAgo(1)+'T10:00', priority:'High', status:'Pending', createdAt:new Date().toISOString() },
+        { id:id(), title:'Update student attendance records', description:'Enter this week\'s attendance data', deadline:daysLater(5)+'T16:00', priority:'Low', status:'Completed', createdAt:new Date().toISOString() },
+      ]);
+      // Seed income
+      DB.set('income', [
+        { id:id(), date:daysAgo(0), customerName:'Mary Wanjiku', service:'Mathematics Tuition', amount:5000, paymentMethod:'M-Pesa', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(0), customerName:'James Otieno', service:'English Tuition', amount:4000, paymentMethod:'Cash', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(1), customerName:'Grace Akinyi', service:'Poster Design', amount:3000, paymentMethod:'M-Pesa', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(2), customerName:'Peter Mwangi', service:'Holiday Program', amount:8000, paymentMethod:'Bank Transfer', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(3), customerName:'Susan Njeri', service:'Science Tuition', amount:4500, paymentMethod:'M-Pesa', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(5), customerName:'David Kamau', service:'Computer Skills Program', amount:6000, paymentMethod:'M-Pesa', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(8), customerName:'Faith Wambui', service:'Logo Design', amount:2500, paymentMethod:'Cash', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(12), customerName:'John Kipchoge', service:'Mathematics Tuition', amount:5000, paymentMethod:'M-Pesa', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(15), customerName:'Lucy Muthoni', service:'Revision Package', amount:3500, paymentMethod:'Cash', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(20), customerName:'Alex Wanyonyi', service:'Kiswahili Tuition', amount:4000, paymentMethod:'M-Pesa', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(35), customerName:'Beatrice Achieng', service:'Holiday Program', amount:8000, paymentMethod:'M-Pesa', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(40), customerName:'Samuel Githinji', service:'Poster Design', amount:3500, paymentMethod:'Cash', createdAt:new Date().toISOString() },
+      ]);
+      // Seed expenses
+      DB.set('expenses', [
+        { id:id(), date:daysAgo(0), item:'Matatu fare to student\'s home', amount:200, category:'Transport', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(1), item:'Printing paper (2 rims)', amount:2400, category:'Materials', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(2), item:'Monthly internet subscription', amount:3000, category:'Internet', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(3), item:'Tuition room rent', amount:8000, category:'Rent', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(5), item:'Facebook ads for holiday program', amount:1500, category:'Marketing', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(7), item:'Ink cartridge', amount:3500, category:'Materials', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(10), item:'Electricity bill', amount:2200, category:'Utilities', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(15), item:'Bodaboda to town', amount:150, category:'Transport', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(20), item:'WhatsApp business promotion', amount:500, category:'Marketing', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(30), item:'Tuition room rent', amount:8000, category:'Rent', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(35), item:'Card stock for posters', amount:1800, category:'Materials', createdAt:new Date().toISOString() },
+        { id:id(), date:daysAgo(40), item:'Water bill', amount:800, category:'Utilities', createdAt:new Date().toISOString() },
+      ]);
+      // Seed students
+      DB.set('students', [
+        { id:id(), name:'Mary Wanjiku', contact:'0712345678', service:'Mathematics Tuition', totalFees:15000, feesPaid:15000, paymentStatus:'Paid', createdAt:new Date().toISOString() },
+        { id:id(), name:'James Otieno', contact:'0723456789', service:'English Tuition', totalFees:12000, feesPaid:4000, paymentStatus:'Pending', createdAt:new Date().toISOString() },
+        { id:id(), name:'Grace Akinyi', contact:'0734567890', service:'Poster Design', totalFees:3000, feesPaid:3000, paymentStatus:'Paid', createdAt:new Date().toISOString() },
+        { id:id(), name:'Peter Mwangi', contact:'0745678901', service:'Holiday Program', totalFees:8000, feesPaid:8000, paymentStatus:'Paid', createdAt:new Date().toISOString() },
+        { id:id(), name:'Susan Njeri', contact:'0756789012', service:'Science Tuition', totalFees:13500, feesPaid:4500, paymentStatus:'Pending', createdAt:new Date().toISOString() },
+        { id:id(), name:'David Kamau', contact:'0767890123', service:'Computer Skills Program', totalFees:18000, feesPaid:6000, paymentStatus:'Pending', createdAt:new Date().toISOString() },
+      ]);
+    }
+  </script>
+</body>
+</html>
