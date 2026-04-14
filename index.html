@@ -32,9 +32,11 @@
         .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
         .btn-danger { background: var(--danger); color: white; }
         .btn-danger:hover { background: #dc2626; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #059669; }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-        .input { width: 100%; padding: 0.65rem 1rem; border: 2px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+        .input { width: 100%; padding: 0.65rem 1rem; border: 2px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; background: white; }
         .input:focus { border-color: var(--primary); }
         textarea.input { resize: vertical; font-family: 'Courier New', Courier, monospace; }
         select.input { cursor: pointer; font-family: 'Segoe UI', system-ui, sans-serif; }
@@ -81,83 +83,41 @@
 
         /* === FULLSCREEN READER === */
         .reader-container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            height: calc(100vh - 100px);
-            transition: all 0.3s ease;
-            position: relative;
+            max-width: 1000px; margin: 0 auto; background: var(--card);
+            border: 1px solid var(--border); border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); overflow: hidden;
+            display: flex; flex-direction: column; height: calc(100vh - 100px);
+            transition: all 0.3s ease; position: relative;
         }
-
         .reader-container:fullscreen,
         .reader-container:-webkit-full-screen {
-            max-width: 100%;
-            width: 100vw;
-            height: 100vh;
-            border-radius: 0;
-            border: none;
-            box-shadow: none;
+            max-width: 100%; width: 100vw; height: 100vh;
+            border-radius: 0; border: none; box-shadow: none;
         }
 
-        /* Floating toolbar — NOW AT THE BOTTOM */
         .reader-float-bar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 50;
-            background: rgba(15, 23, 42, 0.92);
-            backdrop-filter: blur(16px);
-            color: white;
-            padding: 0.6rem 1.2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            position: absolute; bottom: 0; left: 0; right: 0; z-index: 50;
+            background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(16px);
+            color: white; padding: 0.6rem 1.2rem;
+            display: flex; justify-content: space-between; align-items: center;
             transform: translateY(100%);
             transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            gap: 0.75rem;
-            flex-wrap: wrap;
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
+            gap: 0.75rem; flex-wrap: wrap;
+            border-top-left-radius: 12px; border-top-right-radius: 12px;
         }
         .reader-container:fullscreen .reader-float-bar,
-        .reader-container:-webkit-full-screen .reader-float-bar {
-            border-radius: 0;
-        }
-        .reader-float-bar.visible {
-            transform: translateY(0);
-        }
+        .reader-container:-webkit-full-screen .reader-float-bar { border-radius: 0; }
+        .reader-float-bar.visible { transform: translateY(0); }
         .reader-float-bar .float-title {
-            font-weight: 600;
-            font-size: 0.95rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            flex-shrink: 1;
-            min-width: 0;
+            font-weight: 600; font-size: 0.95rem; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; flex-shrink: 1; min-width: 0;
         }
-        .reader-float-bar .float-actions {
-            display: flex;
-            gap: 0.4rem;
-            flex-shrink: 0;
-        }
+        .reader-float-bar .float-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
         .float-btn {
-            padding: 0.35rem 0.7rem;
-            border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.2);
-            background: rgba(255,255,255,0.1);
-            color: white;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
+            padding: 0.35rem 0.7rem; border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1);
+            color: white; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; white-space: nowrap;
         }
         .float-btn:hover { background: rgba(255,255,255,0.25); }
         .float-btn.accent-btn { background: var(--accent); color: #000; border-color: var(--accent); }
@@ -165,32 +125,17 @@
         .float-btn.danger-btn { background: var(--danger); border-color: var(--danger); }
         .float-btn.danger-btn:hover { background: #dc2626; }
 
-        /* Hover zone at the BOTTOM to reveal toolbar */
         .reader-hover-zone {
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            height: 70px;
-            z-index: 40;
-            cursor: default;
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 70px; z-index: 40; cursor: default;
         }
-
         #reader-frame { width: 100%; border: none; flex-grow: 1; background: white; }
 
-        /* Click-to-fullscreen prompt */
         .fullscreen-prompt {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 30;
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(12px);
-            color: white;
-            padding: 2rem 3rem;
-            border-radius: 16px;
-            text-align: center;
-            cursor: pointer;
-            transition: opacity 0.3s;
-            border: 1px solid rgba(255,255,255,0.1);
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 30; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(12px);
+            color: white; padding: 2rem 3rem; border-radius: 16px; text-align: center;
+            cursor: pointer; transition: opacity 0.3s; border: 1px solid rgba(255,255,255,0.1);
         }
         .fullscreen-prompt:hover { background: rgba(15, 23, 42, 0.95); }
         .fullscreen-prompt .prompt-icon { font-size: 3rem; margin-bottom: 0.75rem; display: block; }
@@ -202,18 +147,56 @@
         
         .table-container { overflow-x: auto; margin-top: 1.5rem; }
         table { width: 100%; border-collapse: collapse; text-align: left; }
-        th, td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
-        th { background-color: var(--bg); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); }
+        th, td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        th { background-color: var(--bg); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
         tr:hover td { background-color: #f8fafc; }
         .code-cell { font-family: monospace; font-weight: 700; letter-spacing: 0.5px; color: var(--primary); }
         .action-cell { display: flex; gap: 0.5rem; }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; align-items: center; justify-content: center; }
-        .modal { background: var(--card); padding: 2rem; border-radius: 12px; width: 90%; max-width: 500px; }
+        .modal { background: var(--card); padding: 0; border-radius: 16px; width: 90%; max-width: 560px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        .modal-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { font-size: 1.1rem; }
+        .modal-close { background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .modal-close:hover { background: rgba(255,255,255,0.3); }
+        .modal-body { padding: 1.5rem; }
+        .modal-footer { padding: 0 1.5rem 1.5rem; display: flex; gap: 0.75rem; justify-content: flex-end; }
+
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem; color: var(--text); }
+        .form-group .hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; }
+        .form-group textarea.input { font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100px; }
+
+        /* Previous notes list inside modal */
+        .prev-notes { margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+        .prev-notes h4 { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .prev-note-item { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .prev-note-item .pn-chapter { font-weight: 700; color: var(--primary); font-size: 0.8rem; }
+        .prev-note-item .pn-text { color: var(--text); margin-top: 0.25rem; }
+        .prev-note-item .pn-time { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+        .reflection-card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 1rem; }
+        .reflection-card .rc-book { font-weight: 700; color: var(--primary); font-size: 0.85rem; margin-bottom: 0.25rem; }
+        .reflection-card .rc-chapter { font-size: 0.8rem; color: var(--accent); font-weight: 600; }
+        .reflection-card .rc-text { margin-top: 0.5rem; font-size: 0.95rem; line-height: 1.6; }
+        .reflection-card .rc-meta { display: flex; justify-content: space-between; margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-muted); flex-wrap: wrap; gap: 0.5rem; }
+        .reflection-card .rc-name { font-weight: 600; color: var(--text); }
+
+        .ref-filter-row { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; }
+        .ref-filter-row select { max-width: 300px; }
+        .ref-count { font-size: 0.85rem; color: var(--text-muted); padding: 0.4rem 0; }
+
         .alert { padding: 1rem; border-radius: 8px; margin-top: 1rem; font-size: 0.9rem; }
         .alert-success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
         .hidden { display: none !important; }
         
+        /* Success animation */
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .prev-note-item { animation: fadeSlideUp 0.3s ease; }
+
         @media (max-width: 768px) {
             .hero h1 { font-size: 2.5rem; }
             .form-row { grid-template-columns: 1fr; }
@@ -226,8 +209,10 @@
             .float-btn { padding: 0.3rem 0.5rem; font-size: 0.75rem; }
             .fullscreen-prompt { padding: 1.5rem 2rem; }
             .fullscreen-prompt .prompt-icon { font-size: 2.5rem; }
-            .fullscreen-prompt .prompt-text { font-size: 1rem; }
             .reader-hover-zone { height: 90px; }
+            .modal { width: 95%; }
+            .modal-footer { flex-direction: column; }
+            .modal-footer .btn { width: 100%; }
         }
     </style>
 </head>
@@ -258,18 +243,17 @@
     <div id="page-home" class="page active">
         <section class="hero">
             <h1>Inspire Your <span>Imagination</span></h1>
-            <p class="subtitle">Publish interactive HTML books, read rich media content, and support authors directly.</p>
+            <p class="subtitle">Publish interactive HTML books, read rich media content, and share reflections with authors.</p>
             <div class="hero-buttons">
                 <button class="btn btn-primary" onclick="showPage('library')">Start Reading</button>
                 <button class="btn btn-accent" onclick="showPage('library'); setTimeout(()=>document.getElementById('inp-unlock').focus(), 100)">Redeem Code</button>
             </div>
         </section>
-        
         <div class="container">
             <div class="features-grid">
                 <div class="feature-card">
-                    <img src="https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=600&auto=format&fit=crop" alt="Journal" class="feature-img">
-                    <div class="feature-body"><h3>Private Journal</h3><p>Your entries save directly to your browser.</p></div>
+                    <img src="https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=600&auto=format&fit=crop" alt="Notes" class="feature-img">
+                    <div class="feature-body"><h3>Reader Reflections</h3><p>Leave notes for the author about chapters, pages, or ideas that moved you.</p></div>
                 </div>
                 <div class="feature-card">
                     <img src="https://images.unsplash.com/photo-1524578271613-d550eacf6090?q=80&w=600&auto=format&fit=crop" alt="Bookmark" class="feature-img">
@@ -284,7 +268,6 @@
                     <div class="feature-body"><h3>Support Authors</h3><p>Send in any amount to support creators.</p></div>
                 </div>
             </div>
-
             <div class="support-section">
                 <h2 style="font-size: 2rem; margin-bottom: 1rem;">How to Get Your Access Code</h2>
                 <p style="color: var(--text-muted); max-width: 700px; margin: 0 auto 2rem; font-size: 1.05rem;">
@@ -320,7 +303,6 @@
     <!-- LIBRARY PAGE -->
     <div id="page-library" class="page">
         <div class="container">
-            
             <div id="admin-upload" class="admin-panel hidden">
                 <h2 style="margin-bottom:1.5rem;">Publish New Book</h2>
                 <label style="display:block; margin-bottom:0.5rem; font-weight:600; font-size:0.9rem;">Book Cover Image URL:</label>
@@ -344,18 +326,24 @@
                 <h2 style="margin-bottom:1rem;">📚 Published Books & Codes</h2>
                 <div class="table-container">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Genre</th>
-                                <th>Access Code</th>
-                                <th>Views</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>Title</th><th>Genre</th><th>Access Code</th><th>Views</th><th>Actions</th></tr></thead>
                         <tbody id="codes-tbody"></tbody>
                     </table>
                 </div>
+            </div>
+
+            <!-- ADMIN: READER REFLECTIONS PANEL -->
+            <div id="admin-reflections" class="admin-panel hidden">
+                <h2 style="margin-bottom:0.25rem;">💬 Reader Reflections</h2>
+                <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1rem;">Notes and feedback from your readers.</p>
+                <div class="ref-filter-row">
+                    <select id="ref-filter-book" class="input" onchange="renderAdminReflections()">
+                        <option value="All">All Books</option>
+                    </select>
+                    <button class="btn btn-outline btn-sm" onclick="fetchReflections()">🔄 Refresh</button>
+                </div>
+                <div id="ref-count" class="ref-count"></div>
+                <div id="ref-list"></div>
             </div>
 
             <div class="toolbar">
@@ -374,7 +362,6 @@
                     <button class="btn btn-primary" onclick="unlockBook()">Unlock</button>
                 </div>
             </div>
-
             <div id="book-grid" class="book-grid"></div>
         </div>
     </div>
@@ -383,40 +370,57 @@
     <div id="page-reader" class="page">
         <div style="height: calc(100vh - 80px); display: flex; align-items: stretch; padding: 0;">
             <div id="reader-wrapper" class="reader-container">
-                
-                <!-- Hover zone at the BOTTOM -->
                 <div class="reader-hover-zone" id="reader-hover-zone"></div>
-
-                <!-- Floating toolbar at the BOTTOM -->
                 <div class="reader-float-bar" id="reader-float-bar">
                     <span class="float-title" id="float-title">Book Title</span>
                     <div class="float-actions">
                         <button class="float-btn" id="btn-bookmark" onclick="toggleBookmark()">🔖</button>
-                        <button class="float-btn accent-btn" onclick="openJournal()">📓 Journal</button>
+                        <button class="float-btn accent-btn" onclick="openReflectionModal()">💬 Leave Note</button>
                         <button class="float-btn" id="btn-fullscreen-toggle" onclick="toggleFullscreen()">⛶ Fullscreen</button>
                         <button class="float-btn danger-btn" onclick="exitReader()">✕ Exit</button>
                     </div>
                 </div>
-
-                <!-- Click-to-fullscreen prompt -->
                 <div class="fullscreen-prompt hidden" id="fullscreen-prompt" onclick="goFullscreen()">
                     <span class="prompt-icon">⛶</span>
                     <div class="prompt-text">Tap to Read Fullscreen</div>
                     <div class="prompt-sub">Best reading experience</div>
                 </div>
-
                 <iframe id="reader-frame" title="Book Content"></iframe>
             </div>
         </div>
     </div>
 
-    <!-- Journal Modal -->
-    <div id="journal-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeJournal()">
+    <!-- REFLECTION MODAL (replaces Journal Modal) -->
+    <div id="reflection-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeReflectionModal()">
         <div class="modal">
-            <h3 style="margin-bottom:1rem;">My Private Journal</h3>
-            <textarea id="journal-text" class="input" rows="8" placeholder="Write your thoughts..." style="font-family: 'Segoe UI', sans-serif;"></textarea>
-            <div style="display:flex; justify-content:flex-end; margin-top:1rem;">
-                <button class="btn btn-primary" onclick="saveJournal()">Save Entry</button>
+            <div class="modal-header">
+                <h3>💬 Leave a Reflection</h3>
+                <button class="modal-close" onclick="closeReflectionModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Chapter or Page Reference</label>
+                    <input type="text" id="ref-chapter" class="input" placeholder="e.g. Chapter 3, Page 45, Introduction...">
+                    <div class="hint">Helps the author know exactly which part you're referring to.</div>
+                </div>
+                <div class="form-group">
+                    <label>Your Name <span style="color:var(--text-muted); font-weight:400;">(optional)</span></label>
+                    <input type="text" id="ref-name" class="input" placeholder="Anonymous">
+                </div>
+                <div class="form-group">
+                    <label>Your Reflection / Note</label>
+                    <textarea id="ref-text" class="input" rows="4" placeholder="What struck you about this part? Any suggestions, comments, or thoughts you'd like to share with the author..."></textarea>
+                </div>
+
+                <!-- Previously submitted notes for this book -->
+                <div id="prev-notes-container" class="prev-notes hidden">
+                    <h4>Your Previous Notes</h4>
+                    <div id="prev-notes-list"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline btn-sm" onclick="closeReflectionModal()">Cancel</button>
+                <button id="btn-submit-ref" class="btn btn-primary btn-sm" onclick="submitReflection()">Submit Reflection</button>
             </div>
         </div>
     </div>
@@ -427,9 +431,11 @@
         let books = [];
         let unlockedCodes = JSON.parse(localStorage.getItem('rd_unlocked')) || [];
         let bookmarks = JSON.parse(localStorage.getItem('rd_bookmarks')) || [];
-        let journals = JSON.parse(localStorage.getItem('rd_journals')) || {};
+        let localReflections = JSON.parse(localStorage.getItem('rd_reflections')) || {}; // { bookId: [{chapter, name, text, time}] }
+        let adminReflections = [];
         let isAdmin = false;
         let currentBookId = null;
+        let currentBookTitle = '';
         let floatTimeout = null;
 
         const genreImages = {
@@ -451,7 +457,10 @@
                     content: row[4], poster: row[5] || "", views: row[6] || 0
                 })).reverse();
                 renderLibrary();
-                if(isAdmin) renderAdminTable();
+                if(isAdmin) {
+                    renderAdminTable();
+                    populateReflectionFilter();
+                }
             } catch (err) {
                 console.error("Failed to fetch books:", err);
                 document.getElementById('book-grid').innerHTML = `
@@ -496,6 +505,99 @@
             } catch (e) {}
         }
 
+        // --- REFLECTIONS API ---
+        async function submitReflection() {
+            const chapter = document.getElementById('ref-chapter').value.trim();
+            const name = document.getElementById('ref-name').value.trim() || 'Anonymous';
+            const text = document.getElementById('ref-text').value.trim();
+
+            if(!text) { alert("Please write your reflection before submitting."); return; }
+            if(!chapter) { alert("Please specify the chapter or page you're referring to."); return; }
+
+            const btn = document.getElementById('btn-submit-ref');
+            btn.disabled = true; btn.textContent = 'Sending...';
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'addReflection',
+                        bookId: currentBookId,
+                        bookTitle: currentBookTitle,
+                        chapter, name, text
+                    })
+                });
+
+                // Save locally as confirmation cache
+                if(!localReflections[currentBookId]) localReflections[currentBookId] = [];
+                localReflections[currentBookId].unshift({ chapter, name, text, time: new Date().toLocaleString() });
+                localStorage.setItem('rd_reflections', JSON.stringify(localReflections));
+
+                // Clear form & show success
+                document.getElementById('ref-chapter').value = '';
+                document.getElementById('ref-text').value = '';
+                renderPrevNotes();
+                alert('✅ Your reflection has been sent to the author! Thank you.');
+
+            } catch (err) {
+                // Still save locally even if API fails
+                if(!localReflections[currentBookId]) localReflections[currentBookId] = [];
+                localReflections[currentBookId].unshift({ chapter, name, text, time: new Date().toLocaleString() });
+                localStorage.setItem('rd_reflections', JSON.stringify(localReflections));
+                renderPrevNotes();
+                alert('✅ Reflection saved locally. It will sync when connection is available.');
+            } finally {
+                btn.disabled = false; btn.textContent = 'Submit Reflection';
+            }
+        }
+
+        async function fetchReflections() {
+            try {
+                const res = await fetch(`${API_URL}?action=getReflections`);
+                if (!res.ok) throw new Error('Failed to fetch');
+                const data = await res.json();
+                adminReflections = Array.isArray(data) ? data.slice(1).map(r => ({
+                    time: r[0], bookTitle: r[1], chapter: r[2], name: r[3], text: r[4]
+                })).reverse() : [];
+                renderAdminReflections();
+            } catch (err) {
+                console.error('Failed to fetch reflections:', err);
+                document.getElementById('ref-list').innerHTML = '<p style="color:var(--text-muted);">Could not load reflections.</p>';
+            }
+        }
+
+        function populateReflectionFilter() {
+            const sel = document.getElementById('ref-filter-book');
+            const titles = [...new Set(books.map(b => b.title))];
+            sel.innerHTML = '<option value="All">All Books</option>' + titles.map(t => `<option value="${t}">${t}</option>`).join('');
+        }
+
+        function renderAdminReflections() {
+            const filter = document.getElementById('ref-filter-book').value;
+            const filtered = filter === 'All' ? adminReflections : adminReflections.filter(r => r.bookTitle === filter);
+            const countEl = document.getElementById('ref-count');
+            const listEl = document.getElementById('ref-list');
+
+            countEl.textContent = `Showing ${filtered.length} reflection${filtered.length !== 1 ? 's' : ''}`;
+
+            if(filtered.length === 0) {
+                listEl.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:2rem;">No reflections yet. Readers will see a "Leave Note" button while reading.</p>';
+                return;
+            }
+
+            listEl.innerHTML = filtered.map(r => `
+                <div class="reflection-card">
+                    <div class="rc-book">📖 ${r.bookTitle}</div>
+                    <div class="rc-chapter">📍 ${r.chapter}</div>
+                    <div class="rc-text">${r.text.replace(/\n/g, '<br>')}</div>
+                    <div class="rc-meta">
+                        <span class="rc-name">${r.name}</span>
+                        <span>${r.time}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
         // --- NAVIGATION ---
         function showPage(page) {
             if (page !== 'reader') {
@@ -511,6 +613,8 @@
                 fetchBooks();
                 document.getElementById('admin-upload').classList.toggle('hidden', !isAdmin);
                 document.getElementById('admin-table').classList.toggle('hidden', !isAdmin);
+                document.getElementById('admin-reflections').classList.toggle('hidden', !isAdmin);
+                if(isAdmin) fetchReflections();
             }
         }
 
@@ -617,9 +721,7 @@
         }
 
         // --- FULLSCREEN READER ---
-        function isFullscreen() {
-            return !!(document.fullscreenElement || document.webkitFullscreenElement);
-        }
+        function isFullscreen() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
 
         function goFullscreen() {
             const wrapper = document.getElementById('reader-wrapper');
@@ -627,11 +729,8 @@
             const promise = wrapper.requestFullscreen ? wrapper.requestFullscreen()
                 : wrapper.webkitRequestFullscreen ? wrapper.webkitRequestFullscreen()
                 : Promise.reject();
-            promise.then(() => {
-                document.getElementById('btn-fullscreen-toggle').textContent = '✕ Exit FS';
-            }).catch(() => {
-                console.log("Fullscreen not granted. Reading in windowed mode.");
-            });
+            promise.then(() => { document.getElementById('btn-fullscreen-toggle').textContent = '✕ Exit FS'; })
+                  .catch(() => { console.log("Fullscreen not granted."); });
         }
 
         function exitFullscreen() {
@@ -639,75 +738,52 @@
             else if (document.webkitExitFullscreen) document.webkitExitFullscreen().catch(() => {});
         }
 
-        function toggleFullscreen() {
-            if (isFullscreen()) { exitFullscreen(); } else { goFullscreen(); }
-        }
+        function toggleFullscreen() { if (isFullscreen()) { exitFullscreen(); } else { goFullscreen(); } }
 
         document.addEventListener('fullscreenchange', onFullscreenChange);
         document.addEventListener('webkitfullscreenchange', onFullscreenChange);
 
         function onFullscreenChange() {
             const fsBtn = document.getElementById('btn-fullscreen-toggle');
-            if (isFullscreen()) {
-                fsBtn.textContent = '✕ Exit FS';
-                showFloatBar();
-            } else {
-                fsBtn.textContent = '⛶ Fullscreen';
-            }
+            if (isFullscreen()) { fsBtn.textContent = '✕ Exit FS'; showFloatBar(); }
+            else { fsBtn.textContent = '⛶ Fullscreen'; }
         }
 
-        // Floating toolbar — show on bottom hover, auto-hide
         function showFloatBar() {
             const bar = document.getElementById('reader-float-bar');
             bar.classList.add('visible');
             clearTimeout(floatTimeout);
-            floatTimeout = setTimeout(() => {
-                bar.classList.remove('visible');
-            }, 3000);
+            floatTimeout = setTimeout(() => { bar.classList.remove('visible'); }, 3000);
         }
 
         document.getElementById('reader-hover-zone').addEventListener('mouseenter', showFloatBar);
-
-        // Show bar when mouse moves near the BOTTOM
         document.getElementById('reader-wrapper').addEventListener('mousemove', (e) => {
             const rect = document.getElementById('reader-wrapper').getBoundingClientRect();
-            const distFromBottom = rect.bottom - e.clientY;
-            if (distFromBottom < 80) {
-                showFloatBar();
-            }
+            if ((rect.bottom - e.clientY) < 80) showFloatBar();
         });
-
-        // Touch support: tap bottom area to show bar
         document.getElementById('reader-wrapper').addEventListener('touchstart', (e) => {
             const rect = document.getElementById('reader-wrapper').getBoundingClientRect();
-            const distFromBottom = rect.bottom - e.touches[0].clientY;
-            if (distFromBottom < 100) {
-                showFloatBar();
-            }
+            if ((rect.bottom - e.touches[0].clientY) < 100) showFloatBar();
         }, { passive: true });
 
         function openReader(id, code) {
             const book = books.find(b => b.id === id);
             if(!book) return;
             currentBookId = id;
+            currentBookTitle = book.title;
             document.getElementById('float-title').textContent = book.title;
             document.getElementById('reader-frame').srcdoc = book.content;
             trackView(code);
             updateBookmarkUI();
-            document.getElementById('journal-text').value = journals[id] || "";
             showPage('reader');
             document.getElementById('reader-float-bar').classList.remove('visible');
             document.getElementById('fullscreen-prompt').classList.remove('hidden');
-
-            // Try auto-fullscreen
             setTimeout(() => {
                 const wrapper = document.getElementById('reader-wrapper');
                 const p = wrapper.requestFullscreen ? wrapper.requestFullscreen()
                     : wrapper.webkitRequestFullscreen ? wrapper.webkitRequestFullscreen()
                     : Promise.reject();
-                p.then(() => {
-                    document.getElementById('fullscreen-prompt').classList.add('hidden');
-                }).catch(() => {});
+                p.then(() => { document.getElementById('fullscreen-prompt').classList.add('hidden'); }).catch(() => {});
             }, 100);
         }
 
@@ -723,8 +799,7 @@
             const index = bookmarks.indexOf(currentBookId);
             if(index > -1) { bookmarks.splice(index, 1); } else { bookmarks.push(currentBookId); }
             localStorage.setItem('rd_bookmarks', JSON.stringify(bookmarks));
-            updateBookmarkUI();
-            showFloatBar();
+            updateBookmarkUI(); showFloatBar();
         }
 
         function updateBookmarkUI() {
@@ -736,12 +811,42 @@
             }
         }
 
-        function openJournal() { document.getElementById('journal-modal').classList.remove('hidden'); }
-        function closeJournal() { document.getElementById('journal-modal').classList.add('hidden'); }
-        function saveJournal() {
-            journals[currentBookId] = document.getElementById('journal-text').value;
-            localStorage.setItem('rd_journals', JSON.stringify(journals));
-            alert("Journal saved locally!"); closeJournal();
+        // --- REFLECTION MODAL ---
+        function openReflectionModal() {
+            document.getElementById('reflection-modal').classList.remove('hidden');
+            // Restore name from last time
+            const savedName = localStorage.getItem('rd_ref_name') || '';
+            document.getElementById('ref-name').value = savedName;
+            document.getElementById('ref-chapter').value = '';
+            document.getElementById('ref-text').value = '';
+            renderPrevNotes();
+        }
+
+        function closeReflectionModal() {
+            // Save name for next time
+            const name = document.getElementById('ref-name').value.trim();
+            if(name) localStorage.setItem('rd_ref_name', name);
+            document.getElementById('reflection-modal').classList.add('hidden');
+        }
+
+        function renderPrevNotes() {
+            const container = document.getElementById('prev-notes-container');
+            const list = document.getElementById('prev-notes-list');
+            const notes = localReflections[currentBookId] || [];
+
+            if(notes.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            list.innerHTML = notes.map(n => `
+                <div class="prev-note-item">
+                    <div class="pn-chapter">📍 ${n.chapter}</div>
+                    <div class="pn-text">${n.text}</div>
+                    <div class="pn-time">${n.time} · ${n.name}</div>
+                </div>
+            `).join('');
         }
 
         fetchBooks();
